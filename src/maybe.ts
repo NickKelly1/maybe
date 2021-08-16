@@ -223,7 +223,7 @@ export class Some<T> extends Maybe<T> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class None extends Maybe<any> {
+export class None extends Maybe<never> {
   public get type(): MaybeType.None { return MaybeType.None; }
   public readonly value: undefined;
   isSome(): false { return false; }
