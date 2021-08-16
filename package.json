@@ -1,7 +1,7 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Maybe<T> is a value that may either be T or not exist. Also known as an \"Option\".",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
@@ -20,10 +20,6 @@
   "keywords": [
     "TypeScript",
     "JavaScript"
-  ],
-  "files": [
-    "dist",
-    "LICENSE"
   ],
   "scripts": {
     "test": "jest -c config/jest.config.ts",
