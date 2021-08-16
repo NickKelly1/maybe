@@ -50,6 +50,7 @@ const config = {
           'objects': 'always',
           'arrays': 'always',
         },],
+        'no-dupe-class-members': ['off',], // allow ts function overloading
         'no-unused-vars': ['off',], // favour typescript's no-unused-vars
         'no-undef': ['off',], // favour typescript
         'no-redeclare': ['off',], // favour typescript
