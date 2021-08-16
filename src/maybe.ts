@@ -16,12 +16,25 @@ export abstract class Maybe<T> {
     return new Some(value);
   }
 
-
   /**
    * Get the None instance
    */
   static get none(): None {
     return none;
+  }
+
+  /**
+   * Get the Some class
+   */
+  static get Some(): typeof Some {
+    return Some;
+  }
+
+  /**
+   * Get the None class
+   */
+  static get None(): typeof None {
+    return None;
   }
 
   /**

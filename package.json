@@ -1,8 +1,8 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.1",
-  "description": "Also known as \"Option\", a Maybe<T> is a value that may either be T or not exist.",
+  "version": "0.0.2",
+  "description": "Maybe<T> is a value that may either be T or not exist. Also known as an \"Option\".",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
   "author": "Nick Kelly",
