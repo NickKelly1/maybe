@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.7 - 2021-08-22
+
+### Added
+
+- `MaybeBase.prototype.flat`
+
+### Changed
+
+- Changed `Maybe<T>` from a base class to a union type `Some<T> | None`
+- Updated readme.md
+
 ## 0.0.6 - 2021-08-16
 
 ### Changed

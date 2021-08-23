@@ -1,4 +1,4 @@
-import { Maybe } from './maybe';
+import { Maybe, Some } from './maybe';
 
 describe('Maybe', () => {
   describe('.some(...)', () => {
@@ -167,6 +167,32 @@ describe('Maybe', () => {
         const non = root.flatMap(maybeNone);
         expect(som.isSome()).toBe(true);
         expect(non.isNone()).toBe(true);
+      });
+    });
+
+    describe('.flat(...)', () => {
+      it('Some -> Some', () => {
+        const maybe: Some<number> = Maybe.some(Maybe.some(5)).flat();
+        expect(maybe.isSome()).toBe(true);
+        expect(maybe.value).toBe(5);
+      });
+
+      it('Some -> Maybe', () => {
+        const maybe: Maybe<number> = Maybe.some(Maybe.from(5)).flat();
+        expect(maybe.isSome()).toBe(true);
+        expect(maybe.value).toBe(5);
+      });
+
+      it('Maybe -> Some', () => {
+        const maybe: Maybe<number> = Maybe.from(Maybe.some(5)).flat();
+        expect(maybe.isSome()).toBe(true);
+        expect(maybe.value).toBe(5);
+      });
+
+      it('Some -> None', () => {
+        const maybe: Maybe<number> = Maybe.from(Maybe.none as Maybe<number>).flat();
+        expect(maybe.isNone()).toBe(true);
+        expect(maybe.value).toBe(undefined);
       });
     });
 
