@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.9 - 2021-08-22
+
+### Changed
+
+- Target `es6` instead of `es5`
+
 ## 0.0.8 - 2021-08-22
 
 ### Changed
