@@ -4,15 +4,15 @@
 [![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml)
 ![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/maybe/badge.svg)
 
-Utility class and metods for workin with values that may or may not be exist.
+JavaScript utilities for working with values that may not exist.
 
-A `Maybe<T>` is a value that may either be `T` or not exist. Also known as an "Option.".
+`Maybe<T>` wraps a value that is either `T` or does not exist. `Maybe's` type signature is `Maybe<T> = Some<T> | None`.
 
-The type signature of `Maybe` is `Maybe<T> = Some<T> | None`.
-
-`Some<T>` represents a value that definitely exists.
+`Some<T>` wraps a value that definitely exists.
 
 `None` represents a value that does not exist.
+
+`@nkp/maybe` provides a `Maybe` type, `Some`, `None` and `MaybeBase` classes that provide a fluent API for working with `Maybe` types.
 
 ## Table of contents
 
