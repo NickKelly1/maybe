@@ -51,7 +51,7 @@ export abstract class MaybeBase<T> {
    * @param callbackfn
    * @returns
    */
-  tapSelf<U>(callbackfn: (self: this) => U): this {
+  tapSelf(callbackfn: (self: this) => unknown): this {
     callbackfn(this);
     return this;
   }

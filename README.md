@@ -33,6 +33,8 @@ JavaScript utilities for working with values that may not exist.
     - [map](#map)
     - [mapNone](#mapnone)
     - [tap](#tap)
+    - [tapNone](#tap-none)
+    - [tapSelf](#tap-self)
 
 ## Installation
 
@@ -313,7 +315,7 @@ none.mapNone(() => 5); // does get called
 
 ### tap
 
-Call a synchronous side effect
+Call a synchronous side effect on each some.
 
 ```ts
 // signature
@@ -331,6 +333,52 @@ import { Maybe } from '@nkp/maybe';
 const some = Maybe.from(5);
 some
   .tap(value => console.log(`the value is: ${value}`))
+  .map(function doWork() { /* ... */ });
+```
+
+### tapNone
+
+Call a synchronous side effect if the type is `None`.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  tapNone(callbackfn: () => unknown): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some
+  .tapNone(() => console.log(`it's none`))
+  .map(function doWork() { /* ... */ });
+```
+
+### tapSelf
+
+Call a synchronous side effect with a reference to the `Maybe`.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  tapSelf(callbackfn: (self: this) => unknown): this;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some
+  .tapSelf((self) => console.log(`value was: ${self.value}`))
   .map(function doWork() { /* ... */ });
 ```
 

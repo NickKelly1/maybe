@@ -7,6 +7,10 @@
 - Added `MaybeBase.prototype.tapNone`
 - Added `MaybeBase.prototype.tapSelf`
 
+### Changed
+
+- Updated readme.md
+
 ## 0.0.12 - 2021-08-23
 
 ### Changed
