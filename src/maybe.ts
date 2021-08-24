@@ -179,6 +179,13 @@ export abstract class MaybeBase<T> {
    * @returns
    */
   isNone(): this is None { return false; }
+
+  /**
+   * Get string representation of the object
+   *
+   * @returns
+   */
+  public abstract toString(): string;
 }
 
 /**
@@ -192,6 +199,19 @@ export class Some<T> extends MaybeBase<T> {
   constructor(value: T) {
     super();
     this.value = value;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override toString(): string {
+    let itemStr: string;
+    try {
+      itemStr = String(this.value);
+    } catch (err) {
+      itemStr = '?';
+    }
+    return `[object ${this.constructor.name} {${itemStr}}]`;
   }
 }
 
@@ -208,6 +228,13 @@ export class None extends MaybeBase<never> {
     super();
     this.value = undefined;
     NoneSingleton = this;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override toString(): string {
+    return `[object ${this.constructor.name} {}]`;
   }
 }
 

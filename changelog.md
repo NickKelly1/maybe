@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.14 - 2021-08-23
+
+### Added
+
+- Added `MaybeBase.prototype.toString`
+- Added `MaybeBase.prototype.toString`
+
 ## 0.0.13 - 2021-08-23
 
 ### Added
