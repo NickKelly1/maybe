@@ -151,14 +151,14 @@ export abstract class MaybeBase<T> {
    *
    * @returns
    */
-  abstract isSome(): this is Some<T>;
+  isSome(): this is Some<T> { return false; }
 
   /**
    * Is this a none?
    *
    * @returns
    */
-  abstract isNone(): this is None;
+  isNone(): this is None { return false; }
 }
 
 /**
@@ -167,8 +167,7 @@ export abstract class MaybeBase<T> {
 export class Some<T> extends MaybeBase<T> {
   public get tag(): MaybeTag.Some { return MaybeTag.Some; }
   public readonly value: T;
-  isSome(): true { return true; }
-  isNone(): false { return false; }
+  override isSome(): this is Some<T> { return true; }
 
   constructor(value: T) {
     super();
@@ -182,8 +181,7 @@ export class Some<T> extends MaybeBase<T> {
 export class None extends MaybeBase<never> {
   public get tag(): MaybeTag.None { return MaybeTag.None; }
   public readonly value: undefined;
-  isSome(): false { return false; }
-  isNone(): true { return true; }
+  override isNone(): this is None { return true; }
 
   constructor() {
     if (NoneSingleton) return NoneSingleton;

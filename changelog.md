@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.12 - 2021-08-23
+
+### Changed
+
+- Changed `MaybeBase.isSome`
+- Changed `MaybeBase.isNone`
+
 ## 0.0.11 - 2021-08-22
 
 ### Changed
