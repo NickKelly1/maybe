@@ -4,8 +4,8 @@
 
 ### Added
 
-- Added `MaybeBase.prototype.toString`
-- Added `MaybeBase.prototype.toString`
+- Added `None.prototype.toString`
+- Added `Some.prototype.toString`
 
 ## 0.0.13 - 2021-08-23
 
