@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.13 - 2021-08-23
+
+### Added
+
+- Added `MaybeBase.prototype.tapNone`
+- Added `MaybeBase.prototype.tapSelf`
+
 ## 0.0.12 - 2021-08-23
 
 ### Changed

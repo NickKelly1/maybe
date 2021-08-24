@@ -141,6 +141,41 @@ describe('Maybe', () => {
       });
     });
 
+    describe('.tapNone(...)', () => {
+      it('Some -> Some', () => {
+        let effect = 0;
+        const maybe = Maybe.some(5).tapNone(() => { effect = 5; });
+        expect(maybe.isSome()).toBe(true);
+        expect(maybe.value).toBe(5);
+        expect(effect).toBe(0);
+      });
+
+      it('None -> None', () => {
+        let effect = 0;
+        const maybe = Maybe.none.tapNone(() => { effect = 5; });
+        expect(maybe.isNone()).toBe(true);
+        expect(maybe.value).toBe(undefined);
+        expect(effect).toBe(5);
+      });
+    });
+
+    describe('.tapSelf(...)', () => {
+      it('Some -> Some', () => {
+        let effect: undefined | Maybe<number> = undefined;
+        const maybe = Maybe.some(5).tapSelf((self) => { effect = self; });
+        expect(maybe.isSome()).toBe(true);
+        expect(maybe.value).toBe(5);
+        expect(effect === maybe).toBe(true);
+      });
+
+      it('None -> None', () => {
+        let effect: undefined | Maybe<number> = undefined;
+        const maybe = Maybe.none.tapSelf((self) => { effect = self; });
+        expect(maybe.isNone()).toBe(true);
+        expect(effect === maybe).toBe(true);
+      });
+    });
+
     describe('.flatMap(...)', () => {
       it('Some -> Some', () => {
         const maybe = Maybe.some(5).flatMap(() => Maybe.from('hi'));

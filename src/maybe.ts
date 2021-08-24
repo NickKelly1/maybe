@@ -15,23 +15,44 @@ export abstract class MaybeBase<T> {
   /**
    * Map the value
    *
-   * @param mapFn
+   * @param callbackfn
    * @returns
    */
-  map<U>(mapFn: (item: T) => U): Maybe<U> {
+  map<U>(callbackfn: (item: T) => U): Maybe<U> {
     if (this.isNone()) return this;
-    return new Some(mapFn(this.value!));
+    return new Some(callbackfn(this.value!));
   }
 
   /**
    * Map the value
    *
-   * @param tapFn
+   * @param callbackfn
    * @returns
    */
-  tap<U>(tapFn: (item: T) => U): this {
-    if (this.isNone()) return this;
-    tapFn(this.value!);
+  tap(callbackfn: (item: T) => unknown): this {
+    if (this.isSome()) callbackfn(this.value);
+    return this;
+  }
+
+  /**
+   * Map the value
+   *
+   * @param callbackfn
+   * @returns
+   */
+  tapNone(callbackfn: () => unknown): this {
+    if (this.isNone()) callbackfn();
+    return this;
+  }
+
+  /**
+   * Map the value
+   *
+   * @param callbackfn
+   * @returns
+   */
+  tapSelf<U>(callbackfn: (self: this) => U): this {
+    callbackfn(this);
     return this;
   }
 
@@ -45,7 +66,6 @@ export abstract class MaybeBase<T> {
   flat<U>(this: Maybe<Some<U>>): Maybe<U>
   flat<U>(this: Some<Maybe<U>>): Maybe<U>
   flat<U>(this: Maybe<Maybe<U>>): Maybe<U>
-  flat(): T extends Maybe<Maybe<infer U>> ? Maybe<U> : Maybe<T>
   flat(this: Maybe<None>): None
   flat(this: None): None
   flat(): T extends Maybe<Maybe<infer U>> ? Maybe<U> : Maybe<T> {
