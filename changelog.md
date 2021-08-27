@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.17 - 2021-08-27
+
+- Updated release.yml
+
+## 0.0.16 - 2021-08-27
+
+- Updated release.yml
+
+### Changed
+
+- updated release.yml
+
 ## 0.0.15 - 2021-08-27
 
 ### Changed
