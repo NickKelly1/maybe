@@ -4,7 +4,8 @@
 
 ### Changed
 
-- CI/CD: Changed `npm-publish` to `release` 
+- CI/CD: Changed `npm-publish` to `release`
+- Let GitHub actions handling publishing
 
 ## 0.0.14 - 2021-08-23
 

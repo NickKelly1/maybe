@@ -1,7 +1,7 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.15",
+  "version": "0.0.14",
   "description": "Maybe<T> is a value that may either be T or not exist. Also known as an \"Option\".",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
@@ -23,9 +23,9 @@
   ],
   "scripts": {
     "test": "jest -c config/jest.config.ts",
-    "build": "rimraf dist && rollup -c config/rollup.config.js",
     "test:coverage": "jest -c config/jest.config.ts --coverage",
     "test:watch": "jest -c config/jest.config.ts --watch",
+    "build": "rimraf dist && rollup -c config/rollup.config.js",
     "publish:prepare": "cp package.json dist && cp LICENSE dist && cp README.md dist",
     "lint": "eslint . --ext '*/**/*.{js,jsx,ts,tsx}'",
     "lint:fix": "eslint . --ext '*/**/*.{js,jsx,ts,tsx}' --fix",

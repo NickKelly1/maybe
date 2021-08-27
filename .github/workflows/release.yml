@@ -42,7 +42,7 @@ jobs:
       - run: npm run publish:prepare
       - run: npm publish ./dist --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # success
       # push version change to github
