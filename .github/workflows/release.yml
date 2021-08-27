@@ -8,7 +8,7 @@ on:
     types: [created]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  publish-npm:
+  publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -28,8 +28,24 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+      - run: npm test
       - run: npm run build
+
+      # prepare to push new version to github
+      - run: git config --global user.name "GitHub CD bot"
+      - run: git config --global user.email "github-cd-bot@example.com"
+
+      # upgrade npm version in package.json
+      - run: npm version ${{ github.event.release.tag_name }}
+
+      # push version to npm
       - run: npm run publish:prepare
       - run: npm publish ./dist --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      # success
+      # push version change to github
+      - run: git push
+        env:
+          github-toen: ${{ secrets.GITHUB_TOKEN }}

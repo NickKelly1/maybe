@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.15 - 2021-08-27
+
+### Changed
+
+- CI/CD: Changed `npm-publish` to `release` 
+
 ## 0.0.14 - 2021-08-23
 
 ### Added
