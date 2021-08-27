@@ -1,7 +1,7 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Maybe<T> is a value that may either be T or not exist. Also known as an \"Option\".",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
