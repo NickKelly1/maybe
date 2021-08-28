@@ -1,6 +1,6 @@
 export enum MaybeTag {
-  Some = 'Maybe:Some',
-  None = 'Maybe:None',
+  Some = 'some',
+  None = 'none',
 }
 
 export type Falsy = 0 | false | null | undefined;
@@ -275,7 +275,9 @@ export const Maybe = {
   },
 
   /**
-   * Create a new option from the value
+   * Create a Maybe from the value
+   * Some if not undefined
+   * None if undefined
    *
    * @param value
    * @returns
@@ -286,7 +288,9 @@ export const Maybe = {
   },
 
   /**
-   * Create a new option from the value
+   * Create a Maybe from the value
+   * Some if not null and not undefined
+   * None if null or undefined
    *
    * @param value
    * @returns
@@ -297,7 +301,9 @@ export const Maybe = {
   },
 
   /**
-   * If the value is false, return some
+   * Create a Maybe from the value
+   * Some if truthy
+   * None if falsy
    *
    * @param value
    * @returns
@@ -308,7 +314,7 @@ export const Maybe = {
   },
 
   /**
-   * Create a new Some
+   * Create a Some from the value
    *
    * @param value
    * @returns

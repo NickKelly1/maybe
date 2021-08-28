@@ -51,6 +51,9 @@ const config = {
           'arrays': 'always',
         },],
         'no-dupe-class-members': ['off',], // allow ts function overloading
+        'prefer-arrow-callback': ['off',],
+        'import/no-commonjs': ['off',],
+        'max-len': ['error', { code: 120, },],
         'no-unused-vars': ['off',], // favour typescript's no-unused-vars
         'no-undef': ['off',], // favour typescript
         'no-redeclare': ['off',], // favour typescript

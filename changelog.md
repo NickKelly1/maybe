@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.18 - 2021-08-27
+
+- Update Maybe tags
+
 ## 0.0.17 - 2021-08-27
 
 - Updated release.yml
