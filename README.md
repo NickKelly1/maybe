@@ -1,7 +1,7 @@
 # @nkp/maybe
 
 [![npm version](https://badge.fury.io/js/%40nkp%2Fmaybe.svg)](https://www.npmjs.com/package/@nkp/maybe)
-[![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/release.yml)
+[![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/release.yml)
 ![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/maybe/badge.svg)
 
 JavaScript utilities for working with values that may not exist.
@@ -28,10 +28,20 @@ JavaScript utilities for working with values that may not exist.
     - [flat](#flat)
     - [flatMap](#flatmap)
     - [flatMapNone](#flatmapnone)
+    - [gt](#gt)
+    - [gte](#gte)
     - [isNone](#isnone)
     - [isSome](#issome)
+    - [lt](#lt)
+    - [lte](#lte)
     - [map](#map)
     - [mapNone](#mapnone)
+    - [match](#match)
+    - [matching](#matching)
+    - [notMatching](#notMatching)
+    - [notNull](#notNull)
+    - [notNullable](#notNullable)
+    - [notUndefined](#notUndefined)
     - [tap](#tap)
     - [tapNone](#tap-none)
     - [tapSelf](#tap-self)
@@ -77,13 +87,13 @@ let none: None = Maybe.none;
 // fromNonNullable
 maybeSome = Maybe.fromNonNullable(undefined); // None
 maybeSome = Maybe.fromNonNullable(null); // None
-maybeSome = Maybe.fromNonNullable(0); // Some
+maybeSome = Maybe.fromNonNullable(0); // Some [0]
 
 // fromTruthy
 maybeSome = Maybe.fromTruthy(undefined); // None
 maybeSome = Maybe.fromTruthy(null); // None
 maybeSome = Maybe.fromTruthy(0); // None
-maybeSome = Maybe.fromTruthy(1); // Some
+maybeSome = Maybe.fromTruthy(1); // Some [1]
 ```
 
 ### Methods
@@ -213,6 +223,52 @@ const mapped: Maybe<number | string> = none
   .flatMapNone(() => Maybe.some('hello :)'));
 ```
 
+### gt
+
+Keep only values greater-than the given value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  gt(callbackfn: (self: this) => unknown): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some.gt(6); // None
+some.gt(5); // None
+some.gt(4); // Some [5]
+```
+
+### gte
+
+Keep only values greater-than or equal-to the given value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  gt(callbackfn: (self: this) => unknown): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some.gt(6); // None
+some.gt(5); // Some [5]
+some.gt(4); // Some [5]
+```
+
 #### isNone
 
 Is the `Maybe<T>` a `None`?
@@ -265,6 +321,52 @@ if (maybe.isSome()) {
 }
 ```
 
+### lt
+
+Keep only values less-than the given value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  lt(callbackfn: (self: this) => unknown): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some.lt(6); // Some [5]
+some.lt(5); // None
+some.lt(4); // None
+```
+
+### lte
+
+Keep only values less-than or equal-to the given value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  lte(callbackfn: (self: this) => unknown): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some.lte(6); // Some [5]
+some.lte(5); // Some [5]
+some.lte(4); // None
+```
+
 #### map
 
 Maps the `Some` side of the maybe.
@@ -311,6 +413,151 @@ some.mapNone(() => number + 1); // doesn't get called
 
 const none = Maybe.none;
 none.mapNone(() => 5); // does get called
+```
+
+### match
+
+Match the value with a RegExp expression and extract the requested group.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  match(regexp: string | RegExp, group: number = 0): Maybe<string>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from('style.css');
+
+// extract the basename if the extension is css
+some.match(/(.*)\.css$/); // Some ['style']
+some.match(/(.*)\.js$/); // None
+
+// extract the extension
+some.match(/(.*)\.([^.]*)$/, 1); // Some ['css']
+```
+
+### matching
+
+Filter in values matching the given regex.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  matching(regexp: string | RegExp): Maybe<string>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from('style.css');
+
+// keep only .css
+some.matching(/\.css$/); // Some ['style.css']
+
+// keep only .js
+some.match(/\.js$/); // None
+```
+
+### notMatching
+
+Filter out values matching the given regex.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  notMatching(regexp: string | RegExp): Maybe<string>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from('style.css');
+
+// removw .css
+some.notMatching(/\.css$/); // None
+
+// remove .js
+some.notMatch(/\.js$/); // Some ['style.css']
+```
+
+### notNull
+
+Filter out null values.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  notNull(): Maybe<T extends null ? never : string>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const maybe = Maybe.from<string | null>('style.css');
+
+const defined: Maybe<string> = maybe.notNull();
+```
+
+### notNullable
+
+Filter null and undefined values.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  notNullable(): Maybe<NonNullable<T>>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const maybe = Maybe.from<string | null | undefined>('style.css');
+
+const defined: Maybe<string> = maybe.notNullable();
+```
+
+### notUndefined
+
+Filter out undefined values.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  notUndefined(): Maybe<T extends undefined ? never : string>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const maybe = Maybe.from<string | undefined>('style.css');
+
+const defined: Maybe<string> = maybe.notUndefined();
 ```
 
 ### tap
@@ -382,7 +629,7 @@ some
   .map(function doWork() { /* ... */ });
 ```
 
-## Releasing a new version
+## Publishing a new version
 
 To a release a new version:
 

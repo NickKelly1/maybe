@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.20 - 2021-08-29
+
+### Changed
+
+- Updated badge
+- Updated readme.md
+
 ## 0.0.19 - 2021-08-29
 
 ### Added

@@ -8,9 +8,13 @@ export type Falsy = 0 | false | null | undefined;
 /**
  * Base class for Some and None
  */
-export abstract class MaybeBase<T> {
-  public abstract readonly value: T | undefined = undefined;
-  public abstract tag: MaybeTag;
+export class MaybeKind<T> {
+  constructor(
+    public readonly tag: MaybeTag,
+    public readonly value: T | undefined = undefined,
+  ) {
+    //
+  }
 
   /**
    * Map the value
@@ -20,7 +24,7 @@ export abstract class MaybeBase<T> {
    */
   map<U>(callbackfn: (item: T) => U): Maybe<U> {
     if (this.isNone()) return this;
-    return new Some(callbackfn(this.value!));
+    return Maybe.some(callbackfn(this.value!));
   }
 
   /**
@@ -118,7 +122,7 @@ export abstract class MaybeBase<T> {
    * @returns
    */
   mapNone<U>(mapFn: () => U): Maybe<T | U> {
-    if (this.isNone()) return new Some(mapFn());
+    if (this.isNone()) return Maybe.some(mapFn());
     return this as Maybe<T | U>;
   }
 
@@ -145,7 +149,7 @@ export abstract class MaybeBase<T> {
   filter(filterFn: (item: T) => boolean): Maybe<T> {
     if (this.isNone()) return this;
     if (filterFn(this.value!)) return this as Maybe<T>;
-    return new None();
+    return Maybe.none;
   }
 
   /**
@@ -199,9 +203,12 @@ export abstract class MaybeBase<T> {
    * @returns
    */
   notMatching(regexp: RegExp): Maybe<T> {
-    if (this.isSome()) {
-      if (regexp.test(String(this.value))) return Maybe.none;
-      return Maybe.some(this.value);
+    if (this.isNone()) return this;
+    const _regexp = typeof regexp === 'string'
+      ? new RegExp(regexp)
+      : regexp;
+    if (!_regexp.test(String(this.value))) {
+      return Maybe.some(this.value!);
     }
     return Maybe.none;
   }
@@ -263,12 +270,13 @@ export abstract class MaybeBase<T> {
    * @param regexp
    * @returns
    */
-  matching(regexp: RegExp): Maybe<T> {
-    if (this.isSome()) {
-      if (regexp.test(String(this.value))) {
-        return Maybe.some(this.value);
-      }
-      return Maybe.none;
+  matching(regexp: string | RegExp): Maybe<T> {
+    if (this.isNone()) return this;
+    const _regexp = typeof regexp === 'string'
+      ? new RegExp(regexp)
+      : regexp;
+    if (_regexp.test(String(this.value))) {
+      return Maybe.some(this.value!);
     }
     return Maybe.none;
   }
@@ -279,13 +287,11 @@ export abstract class MaybeBase<T> {
    * @param regexp
    * @returns
    */
-  match(regexp: RegExp, group = 0): Maybe<string> {
-    if (this.isSome()) {
-      const result = String(this.value).match(regexp);
-      if (!result) return Maybe.none;
-      return Maybe.some(result[group]!);
-    }
-    return Maybe.none;
+  match(regexp: string | RegExp, group = 0): Maybe<string> {
+    if (this.isNone()) return this;
+    const result = String(this.value).match(regexp);
+    if (!result) return Maybe.none;
+    return Maybe.some(result[group]!);
   }
 
   /**
@@ -303,75 +309,31 @@ export abstract class MaybeBase<T> {
    *
    * @returns
    */
-  isSome(): this is Some<T> { return false; }
+  isSome(): this is Some<T> {
+    return this.tag === MaybeTag.Some;
+  }
 
   /**
    * Is this a none?
    *
    * @returns
    */
-  isNone(): this is None { return false; }
-
-  /**
-   * Get string representation of the object
-   *
-   * @returns
-   */
-  public abstract toString(): string;
-}
-
-/**
- * A value that exists
- */
-export class Some<T> extends MaybeBase<T> {
-  public get tag(): MaybeTag.Some { return MaybeTag.Some; }
-  public readonly value: T;
-  override isSome(): this is Some<T> { return true; }
-
-  constructor(value: T) {
-    super();
-    this.value = value;
-  }
-
-  /**
-   * @inheritdoc
-   */
-  override toString(): string {
-    let itemStr: string;
-    try {
-      itemStr = String(this.value);
-    } catch (err) {
-      itemStr = '?';
-    }
-    return `[object ${this.constructor.name} {${itemStr}}]`;
+  isNone(): this is None {
+    return this.tag === MaybeTag.None;
   }
 }
 
-/**
- * A value that does not exist
- */
-export class None extends MaybeBase<never> {
-  public get tag(): MaybeTag.None { return MaybeTag.None; }
-  public readonly value: undefined;
-  override isNone(): this is None { return true; }
-
-  constructor() {
-    if (NoneSingleton) return NoneSingleton;
-    super();
-    this.value = undefined;
-    NoneSingleton = this;
-  }
-
-  /**
-   * @inheritdoc
-   */
-  override toString(): string {
-    return `[object ${this.constructor.name} {}]`;
-  }
+export interface Some<T> extends MaybeKind<T> {
+  tag: MaybeTag.Some;
+  value: T;
 }
 
-let NoneSingleton: None | undefined = undefined;
-export const none = new None();
+export interface None extends MaybeKind<never> {
+  tag: MaybeTag.None;
+  value: undefined;
+}
+
+export const none = new MaybeKind<never>(MaybeTag.None) as None;
 
 export type Maybe<T> = None | Some<T>;
 export const Maybe = {
@@ -382,29 +344,15 @@ export const Maybe = {
    * @returns
    */
   some<T>(value: T): Some<T> {
-    return new Some(value);
+    return new MaybeKind(MaybeTag.Some, value) as Some<T>;
   },
 
   /**
    * Get the None instance
+   *
+   * @type {None}
    */
-  get none(): None {
-    return none;
-  },
-
-  /**
-   * Get the Some class
-   */
-  get Some(): typeof Some {
-    return Some;
-  },
-
-  /**
-   * Get the None class
-   */
-  get None(): typeof None {
-    return None;
-  },
+  none,
 
   /**
    * Create a Maybe from the value
@@ -416,7 +364,7 @@ export const Maybe = {
    */
   from<T>(value: T | undefined): Maybe<T> {
     if (value === undefined) return none;
-    return new Some(value);
+    return Maybe.some(value);
   },
 
   /**
@@ -429,7 +377,7 @@ export const Maybe = {
    */
   fromNonNullable<T>(value: T | null | undefined): Maybe<T> {
     if (value == null) return none;
-    return new Some(value);
+    return Maybe.some(value);
   },
 
   /**
@@ -442,7 +390,7 @@ export const Maybe = {
    */
   fromTruthy<T>(value: T | Falsy): Maybe<T> {
     if (!value) return none;
-    return new Some(value);
+    return Maybe.some(value);
   },
 
   /**
@@ -452,7 +400,7 @@ export const Maybe = {
    * @returns
    */
   toSome<T>(value: T): Some<T> {
-    return new Some(value);
+    return Maybe.some(value);
   },
 
   /**
