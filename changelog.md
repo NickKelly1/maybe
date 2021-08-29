@@ -1,10 +1,34 @@
 # Changelog
 
+## 0.0.19 - 2021-08-29
+
+### Added
+
+- `MaybeBase.prototype.match`
+- `MaybeBase.prototype.matching`
+- `MaybeBase.prototype.notMatching`
+- `MaybeBase.prototype.notNull`
+- `MaybeBase.prototype.notUndefined`
+- `MaybeBase.prototype.notNullable`
+- `MaybeBase.prototype.gt`
+- `MaybeBase.prototype.gte`
+- `MaybeBase.prototype.lt`
+- `MaybeBase.prototype.lte`
+
+### Changed
+
+- Update Maybe tags
+- Updated project configuration
+
 ## 0.0.18 - 2021-08-27
+
+### Changed
 
 - Update Maybe tags
 
 ## 0.0.17 - 2021-08-27
+
+### Changed
 
 - Updated release.yml
 

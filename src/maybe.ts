@@ -137,6 +137,7 @@ export abstract class MaybeBase<T> {
   }
 
   /**
+   * Filter in items matching
    *
    * @param filterFn
    * @returns
@@ -148,12 +149,143 @@ export abstract class MaybeBase<T> {
   }
 
   /**
+   * Filter in items greater than the given value
+   *
+   * @param gt
+   * @returns
+   */
+  gt(gt: Date | number | BigInt): Maybe<T> {
+    if (this.isNone()) return this;
+    return this.filter((i) => Number(i) > Number(gt));
+  }
+
+  /**
+   * Filter in items greater than the given value
+   *
+   * @param gte
+   * @returns
+   */
+  gte(gt: Date | number | BigInt): Maybe<T> {
+    if (this.isNone()) return this;
+    return this.filter((i) => Number(i) >= Number(gt));
+  }
+
+  /**
+   * Filter in items greater than the given value
+   *
+   * @param gt
+   * @returns
+   */
+  lt(gt: Date | number | BigInt): Maybe<T> {
+    if (this.isNone()) return this;
+    return this.filter((i) => Number(i) < Number(gt));
+  }
+
+  /**
+   * Filter in items greater than the given value
+   *
+   * @param gte
+   * @returns
+   */
+  lte(gt: Date | number | BigInt): Maybe<T> {
+    if (this.isNone()) return this;
+    return this.filter((i) => Number(i) <= Number(gt));
+  }
+
+  /**
+   * Exclude items that test positive
+   *
+   * @param regexp
+   * @returns
+   */
+  notMatching(regexp: RegExp): Maybe<T> {
+    if (this.isSome()) {
+      if (regexp.test(String(this.value))) return Maybe.none;
+      return Maybe.some(this.value);
+    }
+    return Maybe.none;
+  }
+
+  /**
+   * Keep values that are not undefined
+   *
+   * @param this
+   * @returns
+   */
+  notUndefined(): Maybe<T extends undefined ? never : T> {
+    if (this.isSome()) {
+      if (this.value === undefined) return Maybe.none;
+      return Maybe.some(this.value as T) as Maybe<T extends undefined ? never : T>;
+    }
+    return Maybe.none;
+  }
+
+  /**
+   * Keep values that are not null
+   *
+   * @param this
+   * @returns
+   */
+  notNull(): Maybe<T extends null ? never : T> {
+    if (this.isSome()) {
+      if (this.value === null) return Maybe.none;
+      return Maybe.some(this.value as T) as Maybe<T extends null ? never : T>;
+    }
+    return Maybe.none;
+  }
+
+  /**
+   * Keep values that are not null or undefined
+   *
+   * @param this
+   * @returns
+   */
+  notNullable(): Maybe<NonNullable<T>> {
+    if (this.isSome()) {
+      if (this.value == null) return Maybe.none;
+      return Maybe.some(this.value as T) as Maybe<NonNullable<T>>;
+    }
+    return Maybe.none;
+  }
+
+  /**
    * Filter out the specific value
    *
    * @param value
    */
   exclude(value: T): Maybe<T> {
     return this.filter((item) => item !== value);
+  }
+
+  /**
+   * Keep items that test positive
+   *
+   * @param regexp
+   * @returns
+   */
+  matching(regexp: RegExp): Maybe<T> {
+    if (this.isSome()) {
+      if (regexp.test(String(this.value))) {
+        return Maybe.some(this.value);
+      }
+      return Maybe.none;
+    }
+    return Maybe.none;
+  }
+
+  /**
+   * Match
+   *
+   * @param regexp
+   * @returns
+   */
+  match(regexp: RegExp, group = 0): Maybe<string> {
+    if (this.isSome()) {
+      const result = String(this.value).match(regexp);
+      if (!result) return Maybe.none;
+      return Maybe.some(result[group]!);
+    }
+    return Maybe.none;
   }
 
   /**
@@ -296,7 +428,7 @@ export const Maybe = {
    * @returns
    */
   fromNonNullable<T>(value: T | null | undefined): Maybe<T> {
-    if (value == undefined) return none;
+    if (value == null) return none;
     return new Some(value);
   },
 

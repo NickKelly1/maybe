@@ -1,7 +1,7 @@
 # @nkp/maybe
 
 [![npm version](https://badge.fury.io/js/%40nkp%2Fmaybe.svg)](https://www.npmjs.com/package/@nkp/maybe)
-[![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml)
+[![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/release.yml)
 ![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/maybe/badge.svg)
 
 JavaScript utilities for working with values that may not exist.

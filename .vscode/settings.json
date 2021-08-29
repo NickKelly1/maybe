@@ -1,4 +1,5 @@
 {
+  "window.title": "@nkp/maybe",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },

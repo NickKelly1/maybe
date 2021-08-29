@@ -242,5 +242,318 @@ describe('Maybe', () => {
         expect(() => maybe.unwrap()).toThrow();
       });
     });
+
+    describe('.notMatchin(...)', () => {
+      it('Some -> Some', () => {
+        const m1: Maybe<string> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.notMatching(/i th/);
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('Some -> None', () => {
+        const m1: Maybe<string> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.notMatching(/i thh/);
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string> = Maybe.none;
+        const m2: Maybe<string> = m1.notMatching(/i thh/);
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.matching(...)', () => {
+      it('Some -> Some', () => {
+        const m1: Maybe<string> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.matching(/i th/);
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('Some -> None', () => {
+        const m1: Maybe<string> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.matching(/i thh/);
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string> = Maybe.none;
+        const m2: Maybe<string> = m1.matching(/i thh/);
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.notUndefined(...)', () => {
+      it('Some -> Some', () => {
+        const m1: Maybe<string | undefined> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.notUndefined();
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('Some -> None', () => {
+        const m1: Maybe<string | undefined> = Maybe.some(undefined);
+        const m2: Maybe<string> = m1.notUndefined();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string | undefined> = Maybe.none;
+        const m2: Maybe<string> = m1.notUndefined();
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.notUndefined(...)', () => {
+      it('Some -> Some', () => {
+        const m1: Maybe<string | null> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.notNull();
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('Some -> None', () => {
+        const m1: Maybe<string | null> = Maybe.some(null);
+        const m2: Maybe<string> = m1.notNull();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string | null> = Maybe.none;
+        const m2: Maybe<string> = m1.notNull();
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.notNullable(...)', () => {
+      it('Some -> Some', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.notNullable();
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('Some -> None (1)', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some(null);
+        const m2: Maybe<string> = m1.notNullable();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('Some -> None (2)', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some(undefined);
+        const m2: Maybe<string> = m1.notNullable();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.none;
+        const m2: Maybe<string> = m1.notNullable();
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.gt(...)', () => {
+      describe('Some -> Some', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).gt(4);
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(5);
+        });
+        it('Date', () => {
+          const maybe = Maybe.some(new Date()).gt(new Date(Date.now() - 20_000));
+          expect(maybe.isSome()).toEqual(true);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).gt(BigInt(499));
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(BigInt(500));
+        });
+      });
+
+      describe('Some -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).gt(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).gt(now);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).gt(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+
+      describe('None -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.none.gt(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const maybe = Maybe.none.gt(new Date());
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.none.gt(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+    });
+
+    describe('.gte(...)', () => {
+      describe('Some -> Some', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).gte(5);
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(5);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).gte(now);
+          expect(maybe.isSome()).toEqual(true);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).gte(BigInt(500));
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(BigInt(500));
+        });
+      });
+
+      describe('Some -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).gte(6);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).gte(new Date(Date.now() + 20_000));
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).gte(BigInt(501));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+
+      describe('None -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.none.gte(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const maybe = Maybe.none.gte(new Date());
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.none.gte(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+    });
+
+    describe('.lt(...)', () => {
+      describe('Some -> Some', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).lt(6);
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(5);
+        });
+        it('Date', () => {
+          const maybe = Maybe.some(new Date()).lt(new Date(Date.now() + 20_000));
+          expect(maybe.isSome()).toEqual(true);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).lt(BigInt(501));
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(BigInt(500));
+        });
+      });
+
+      describe('Some -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).lt(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).lt(now);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).lt(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+
+      describe('None -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.none.lt(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const maybe = Maybe.none.lt(new Date());
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.none.lt(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+    });
+
+    describe('.lte(...)', () => {
+      describe('Some -> Some', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).lte(5);
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(5);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).lte(now);
+          expect(maybe.isSome()).toEqual(true);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).lte(BigInt(500));
+          expect(maybe.isSome()).toEqual(true);
+          expect(maybe.value).toEqual(BigInt(500));
+        });
+      });
+
+      describe('Some -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.some(5).lte(4);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const now = new Date();
+          const maybe = Maybe.some(now).lte(new Date(Date.now() - 20_000));
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.some(BigInt(500)).lte(BigInt(499));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+
+      describe('None -> None', () => {
+        it('number', () => {
+          const maybe = Maybe.none.lte(5);
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('Date', () => {
+          const maybe = Maybe.none.lte(new Date());
+          expect(maybe.isSome()).toEqual(false);
+        });
+        it('BigInt', () => {
+          const maybe = Maybe.none.lte(BigInt(500));
+          expect(maybe.isSome()).toEqual(false);
+        });
+      });
+    });
   });
 });
