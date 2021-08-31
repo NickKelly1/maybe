@@ -23,6 +23,7 @@ JavaScript utilities for working with values that may not exist.
 - [Usage](#usage)
   - [Creating a Maybe](#creating-a-maybe)
   - [Methods](#methods)
+    - [at](#at)
     - [exclude](#exclude)
     - [filter](#filter)
     - [flat](#flat)
@@ -42,6 +43,7 @@ JavaScript utilities for working with values that may not exist.
     - [notNull](#notNull)
     - [notNullable](#notNullable)
     - [notUndefined](#notUndefined)
+    - [pluck](#pluck)
     - [tap](#tap)
     - [tapNone](#tap-none)
     - [tapSelf](#tap-self)
@@ -71,32 +73,84 @@ yarn add @nkp/maybe
 ```ts
 import { Maybe, Some, None } from '@nkp/maybe';
 
-// from
-let maybeSome: Maybe<number> = Maybe.from(5); // Some<number>
-maybeSome.value; // 5 (ts: number | undefined)
-
-let maybeNone: Maybe<number> = Maybe.from<number>(undefined); // None
-maybeNone.value; // undefined
-
 // some
-let some: Some<number> = Maybe.some(5);
+let some: Some<number> = Maybe.from(5);
 
 // none
 let none: None = Maybe.none;
 
-// fromNonNullable
-maybeSome = Maybe.fromNonNullable(undefined); // None
-maybeSome = Maybe.fromNonNullable(null); // None
-maybeSome = Maybe.fromNonNullable(0); // Some [0]
-
-// fromTruthy
-maybeSome = Maybe.fromTruthy(undefined); // None
-maybeSome = Maybe.fromTruthy(null); // None
-maybeSome = Maybe.fromTruthy(0); // None
-maybeSome = Maybe.fromTruthy(1); // Some [1]
+// from
+let maybe: Maybe<number> = Maybe.from(5);
 ```
 
 ### Methods
+
+#### at
+
+If the value is iterable, retrieve it's `i'th` element's value.
+
+Allows for reverse indexing.
+
+Internally caches the iterable asn an array.
+
+If the value is not iterable, returns the `Some [value]` from 0 and -1 indexes and `None` for any other provided index.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  // tuples
+  at<U extends any[], I extends keyof U>(this: MaybeKind<U>, index: I): Maybe<U[I]>
+  // arrays
+  at<U>(this: MaybeKind<U[]>, index: number): Maybe<U>
+  // any iterable type
+  at<U>(this: MaybeKind<Iterable<U>>, index: number): Maybe<U>
+  // non-iterable
+  at(index: number): None
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+// arrays are the familiar iterable type
+const maybe = Maybe.some([1, 2, 3])
+
+// forward indexing
+maybe.at(0); // Some [1]
+maybe.at(1); // Some [2]
+maybe.at(2); // Some [3]
+maybe.at(3); // None      - out of bounds
+
+// reverse indexing
+maybe.at(-1); // Some [3]
+maybe.at(-2); // Some [2]
+maybe.at(-3); // Some [1]
+maybe.at(-4); // None      - out of bounds
+
+
+// other iterable types
+
+// strings are iterable
+const string = Maybe.some('strings are iterable')
+
+string.at(0); // Some ['s']
+string.at(1); // Some ['t']
+string.at(2); // Some ['r']
+// ...
+
+// sets are iterable
+const set = Maybe.some(new Set(1, 2, 3))
+
+string.at(0); // Some [1]
+string.at(1); // Some [2]
+string.at(2); // Some [3]
+string.at(3); // None
+// ...
+
+```
 
 #### exclude
 
@@ -423,7 +477,7 @@ Match the value with a RegExp expression and extract the requested group.
 // signature
 
 interface Maybe<T> {
-  match(regexp: string | RegExp, group: number = 0): Maybe<string>;
+  match(regexp: string | RegExp): Maybe<RegExpMatchArray>;
 }
 ```
 
@@ -435,11 +489,11 @@ import { Maybe } from '@nkp/maybe';
 const some = Maybe.from('style.css');
 
 // extract the basename if the extension is css
-some.match(/(.*)\.css$/); // Some ['style']
+some.match(/(.*)\.css$/); // Some [[style.css, 'style', ...]]
 some.match(/(.*)\.js$/); // None
 
 // extract the extension
-some.match(/(.*)\.([^.]*)$/, 1); // Some ['css']
+some.match(/(.*)\.([^.]*)$/); // Some [['style.css', 'css', ...]]
 ```
 
 ### matching
@@ -558,6 +612,30 @@ import { Maybe } from '@nkp/maybe';
 const maybe = Maybe.from<string | undefined>('style.css');
 
 const defined: Maybe<string> = maybe.notUndefined();
+```
+
+### pluck
+
+Extract a key from the value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  pluck<K extends keyof T>(key: K): Maybe<T[K]>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+interface Cat { name: string, }
+
+const cat: Some<Cat> = Maybe.some<Cat>({ name: 'Furball', });
+
+const name: Maybe<string> = cat.pluck('name'); // Some ['Furball']
 ```
 
 ### tap
