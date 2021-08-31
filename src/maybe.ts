@@ -16,6 +16,22 @@ export class MaybeKind<T> {
     //
   }
 
+  protected _arr: undefined | unknown[];
+  protected _cachedArray(): undefined | unknown[] {
+    if (this._arr) return this._arr;
+    if (!this.value) return undefined;
+    if (Array.isArray(this.value)) {
+      this._arr = this.value;
+      return this.value;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (this.value as any)[Symbol.iterator] === 'function') {
+      this._arr = [...(this.value as unknown as Iterable<number>),];
+      return this._arr;
+    }
+    return undefined;
+  }
+
   /**
    * Map the value
    *
@@ -287,12 +303,69 @@ export class MaybeKind<T> {
    * @param regexp
    * @returns
    */
-  match(regexp: string | RegExp, group = 0): Maybe<string> {
+  match(regexp: string | RegExp): Maybe<RegExpMatchArray> {
     if (this.isNone()) return this;
     const result = String(this.value).match(regexp);
     if (!result) return Maybe.none;
-    return Maybe.some(result[group]!);
+    return Maybe.some(result);
   }
+
+  /**
+   * Get the value at the given array index
+   *
+   * @param this
+   * @param index
+   * @returns
+   *
+   * Tuples:
+   *  - Positive indeces will be typed to the correct value
+   *  - Negative indeces will be typed as a union of the tuple
+   * This is because "I extends keyof U" is true for any positive
+   * number I. However for negative I, this is false.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  at<U extends any[], I extends keyof U>(this: MaybeKind<U>, index: I): Maybe<U[I]>
+  at<U>(this: MaybeKind<U[]>, index: number): Maybe<U>
+  at<U>(this: MaybeKind<Iterable<U>>, index: number): Maybe<U>
+  at(index: number): None
+  at<U>(this: MaybeKind<Iterable<U>>, index: number): Maybe<U> {
+    // none
+    if (this.isNone()) return none;
+
+    // extract value as cached array
+    const arr = this._cachedArray() as undefined | U[];
+
+    // not array-like
+    if (!arr) {
+      if (index === 0 || index === -1) return this as Maybe<U>;
+      return Maybe.none;
+    }
+
+    // forward index
+    if (index >= 0) {
+      // index is positive
+      if (index >= arr.length) return Maybe.none;
+      return Maybe.some(arr[index]!);
+    }
+
+    // reverse index
+    if (index < -arr.length) return Maybe.none;
+    return Maybe.some(arr[arr.length + index]!);
+  }
+
+  /**
+   * Pluck a value from the object
+   *
+   * @param key
+   * @returns
+   */
+  pluck<K extends keyof T>(key: K): Maybe<T[K]> {
+    if (this.isNone()) return Maybe.none;
+    if (!this.value) return Maybe.none;
+    if (key in this.value) return Maybe.some(this.value[key]);
+    return Maybe.none;
+  }
+
 
   /**
    * Unwrap, throwing an error if is none

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.22 - 2021-08-31
+
+### Added
+
+- `MaybeBase.prototype.at`
+- `MaybeBase.prototype.pluck`
+
+### Updated
+
+- `MaybeBase.prototype.match`
+
 ## 0.0.21 - 2021-08-29
 
 ### Changed
