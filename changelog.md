@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.26 - 2021-09-01
+
+- Fixed type discrimination on `SomeLike` and `NoneLike`
+- Fixed tag version compatibility
+
 ## 0.0.25 - 2021-09-01
 
 - Added version type compatibility tests

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { Maybe, MaybeKindLike, MaybeLike, None, NoneLike, Some, SomeLike } from './maybe';
+import { Maybe, MaybeKind, MaybeKindLike, MaybeLike, None, NoneLike, Some, SomeLike } from './maybe';
 
 describe('Maybe', () => {
   describe('.some(...)', () => {
@@ -863,6 +863,27 @@ describe('Maybe', () => {
         const noneLike: NoneLike = none;
         expect(noneLike.value).toEqual(undefined);
       });
+    });
+
+    describe('MaybeLike<U>.value = U', () => {
+      // this test ensures the generic of a MaybeLike
+      // has its value inferred properly
+      //
+      // if SomeLike and NoneLike are not tagged (to become a disciminated
+      // union) then TypeScript can't infer Some<T> -> SomeLike<T>
+      // and None -> NoneLike, causing the <U> below to be ineferred as <U | undefined>
+      //
+      // this is a regression test to ensure <U> continues to be inferred correctly
+      function extractU<T>(val: T) {
+        return function extractU<U>(callbackfn: (value: T, currentIndex: number) => MaybeLike<U>): U {
+          const maybe = callbackfn(val, 0);
+          if (maybe.isNone()) throw new Error();
+          return maybe.value;
+        };
+      }
+
+      const u: number = extractU(5)((n) => Maybe.some(n) as Maybe<number>);
+      expect(u).toEqual(5);
     });
   });
 });

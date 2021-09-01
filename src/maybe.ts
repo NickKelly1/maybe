@@ -1,11 +1,15 @@
-export enum MaybeTag {
-  Some = 'some',
-  None = 'none',
-}
+export type SOME = 'some';
+export const SOME: SOME = 'some';
+
+export type NONE = 'none';
+export const NONE: NONE = 'none';
+
+export type TAG = SOME | NONE;
 
 export type Falsy = 0 | false | null | undefined;
 
 export interface MaybeKindLike<T> {
+  tag: TAG;
   value: T | undefined;
   isSome(): this is SomeLike<T>;
   isNone(): this is NoneLike;
@@ -16,7 +20,7 @@ export interface MaybeKindLike<T> {
  */
 export class MaybeKind<T> implements MaybeKindLike<T> {
   constructor(
-    public readonly tag: MaybeTag,
+    public readonly tag: TAG,
     public readonly value: T | undefined = undefined,
   ) {
     //
@@ -112,11 +116,11 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
 
     // value is a None<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((value as any).tag === MaybeTag.None) return value as unknown as any;
+    if ((value as any).tag === NONE) return value as unknown as any;
 
     // value is a Some<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((value as any).tag === MaybeTag.Some) return value as unknown as any;
+    if ((value as any).tag === SOME) return value as unknown as any;
 
     // value is unknown
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,7 +393,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   isSome(): this is Some<T> {
-    return this.tag === MaybeTag.Some;
+    return this.tag === SOME;
   }
 
   /**
@@ -398,17 +402,19 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   isNone(): this is None {
-    return this.tag === MaybeTag.None;
+    return this.tag === NONE;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SomeLike<T> extends MaybeKindLike<T> {
+  tag: SOME;
   value: T;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NoneLike extends MaybeKindLike<never> {
+  tag: NONE;
   value: undefined
 }
 
@@ -425,18 +431,18 @@ export interface NoneLike extends MaybeKindLike<never> {
 export type MaybeLike<T> = SomeLike<T> | NoneLike;
 
 export interface Some<T> extends MaybeKind<T> {
-  tag: MaybeTag.Some;
+  tag: SOME;
   value: T;
 }
 
 export interface None extends MaybeKind<never> {
-  tag: MaybeTag.None;
+  tag: NONE;
   value: undefined;
 }
 
 export type Maybe<T> = None | Some<T>;
 
-export const none = new MaybeKind<never>(MaybeTag.None) as None;
+export const none = new MaybeKind<never>(NONE) as None;
 
 export const Maybe = {
   /**
@@ -446,7 +452,7 @@ export const Maybe = {
    * @returns
    */
   some<T>(value: T): Some<T> {
-    return new MaybeKind(MaybeTag.Some, value) as Some<T>;
+    return new MaybeKind(SOME, value) as Some<T>;
   },
 
   /**
