@@ -8,7 +8,7 @@ export type Falsy = 0 | false | null | undefined;
 /**
  * Base class for Some and None
  */
-export class MaybeKind<T> {
+export class MaybeKind<T> implements MaybeLike<T> {
   constructor(
     public readonly tag: MaybeTag,
     public readonly value: T | undefined = undefined,
@@ -396,6 +396,17 @@ export class MaybeKind<T> {
   }
 }
 
+export interface MaybeLike<T> {
+  isSome(): this is SomeLike<T>;
+  isNone(): this is NoneLike;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SomeLike<T> extends MaybeLike<T> {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface NoneLike extends MaybeLike<never> {}
+
 export interface Some<T> extends MaybeKind<T> {
   tag: MaybeTag.Some;
   value: T;
@@ -405,6 +416,7 @@ export interface None extends MaybeKind<never> {
   tag: MaybeTag.None;
   value: undefined;
 }
+
 
 export const none = new MaybeKind<never>(MaybeTag.None) as None;
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.24 - 2021-08-31
+
+### Changed
+
+- Added type `MaybeLike`
+- Added type `SomeLike`
+- Added type `NoneLike`
+
 ## 0.0.23 - 2021-08-31
 
 ### Changed
