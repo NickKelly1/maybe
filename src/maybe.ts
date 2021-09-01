@@ -5,10 +5,16 @@ export enum MaybeTag {
 
 export type Falsy = 0 | false | null | undefined;
 
+export interface MaybeKindLike<T> {
+  value: T | undefined;
+  isSome(): this is SomeLike<T>;
+  isNone(): this is NoneLike;
+}
+
 /**
  * Base class for Some and None
  */
-export class MaybeKind<T> implements MaybeLike<T> {
+export class MaybeKind<T> implements MaybeKindLike<T> {
   constructor(
     public readonly tag: MaybeTag,
     public readonly value: T | undefined = undefined,
@@ -396,16 +402,27 @@ export class MaybeKind<T> implements MaybeLike<T> {
   }
 }
 
-export interface MaybeLike<T> {
-  isSome(): this is SomeLike<T>;
-  isNone(): this is NoneLike;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SomeLike<T> extends MaybeKindLike<T> {
+  value: T;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SomeLike<T> extends MaybeLike<T> {}
+export interface NoneLike extends MaybeKindLike<never> {
+  value: undefined
+}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface NoneLike extends MaybeLike<never> {}
+//
+// MaybeLike allows library consumers to interoperate with multiple
+// incompatible versions of the @nkp/maybe library
+//
+// If your library function requires a Maybe<T>, type it as
+// the more basic MaybeLike<T> instead, if you can forego the
+// extra methods attached to Maybe<T>.
+//
+// All version of @nkp/maybe will remain compatible with MaybeLike<T>
+//
+export type MaybeLike<T> = SomeLike<T> | NoneLike;
 
 export interface Some<T> extends MaybeKind<T> {
   tag: MaybeTag.Some;
@@ -417,10 +434,10 @@ export interface None extends MaybeKind<never> {
   value: undefined;
 }
 
+export type Maybe<T> = None | Some<T>;
 
 export const none = new MaybeKind<never>(MaybeTag.None) as None;
 
-export type Maybe<T> = None | Some<T>;
 export const Maybe = {
   /**
    * Create a Some

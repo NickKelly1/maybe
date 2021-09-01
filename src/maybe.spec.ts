@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { Maybe, Some } from './maybe';
+import { Maybe, MaybeKindLike, MaybeLike, None, NoneLike, Some, SomeLike } from './maybe';
 
 describe('Maybe', () => {
   describe('.some(...)', () => {
@@ -804,6 +805,63 @@ describe('Maybe', () => {
         const m1: Maybe<never>  = Maybe.none;
         const m2: Maybe<never> = m1.pluck('undef');
         expect(m2.isSome()).toEqual(false);
+      });
+    });
+  });
+
+  describe('type version compatibility', () => {
+    describe('MaybeLike', () => {
+      it('doesn\'t narrow to Maybe', () => {
+        const maybeLike: MaybeLike<number> = Maybe.some(5);
+        // expect a TypeScript error here
+        // MaybeLike cannot narrow to Maybe
+        // @ts-expect-error
+        const maybe: Maybe<number> = maybeLike;
+        expect(maybe.value).toEqual(5);
+      });
+    });
+
+    describe('Maybe', () => {
+      it('narrows to MaybeLike', () => {
+        const maybe: Maybe<number> = Maybe.some(5);
+        const MaybeLike: MaybeLike<number> = maybe;
+        expect(MaybeLike.value).toEqual(5);
+      });
+    });
+
+    describe('SomeLike', () => {
+      it('doesn\'t narrows to Some', () => {
+        const someLike: SomeLike<number> = Maybe.some(5);
+        // expect a TypeScript error here - cannot narrow
+        // @ts-expect-error
+        const some: Some<number> = someLike;
+        expect(some.value).toEqual(5);
+      });
+    });
+
+    describe('Some', () => {
+      it('narrows to SomeLike', () => {
+        const some: Some<number> = Maybe.some(5);
+        const someLike: SomeLike<number> = some;
+        expect(someLike.value).toEqual(5);
+      });
+    });
+
+    describe('NoneLike', () => {
+      it('doesn\'t narrows to None', () => {
+        const noneLike: NoneLike = Maybe.none;
+        // expect a TypeScript error here - cannot narrow
+        // @ts-expect-error
+        const none: None = noneLike;
+        expect(none.value).toEqual(undefined);
+      });
+    });
+
+    describe('None', () => {
+      it('narrows to NoneLike', () => {
+        const none: None = Maybe.none;
+        const noneLike: NoneLike = none;
+        expect(noneLike.value).toEqual(undefined);
       });
     });
   });

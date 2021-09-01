@@ -2,11 +2,12 @@
 
 ## 0.0.24 - 2021-08-31
 
-### Changed
+### Added
 
 - Added type `MaybeLike`
 - Added type `SomeLike`
 - Added type `NoneLike`
+- Added version type compatibility tests
 
 ## 0.0.23 - 2021-08-31
 
