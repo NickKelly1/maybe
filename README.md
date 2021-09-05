@@ -37,6 +37,7 @@ JavaScript utilities for working with values that may not exist.
     - [lte](#lte)
     - [map](#map)
     - [mapNone](#mapnone)
+    - [mapSelf]($mapself)
     - [match](#match)
     - [matching](#matching)
     - [notMatching](#notMatching)
@@ -47,6 +48,10 @@ JavaScript utilities for working with values that may not exist.
     - [tap](#tap)
     - [tapNone](#tap-none)
     - [tapSelf](#tap-self)
+    - [throw]($mapself)
+    - [throwError]($mapself)
+    - [throwErrorLike]($mapself)
+    - [throwW]($mapself)
 
 ## Installation
 
@@ -469,6 +474,30 @@ const none = Maybe.none;
 none.mapNone(() => 5); // does get called
 ```
 
+#### mapSelf
+
+Maps the Maybe instance to another value.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  mapSelf<R>(callbackfn: (self: this) => R): R;
+}
+```
+
+```ts
+// usage
+
+import { Maybe, None, Some } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some.mapSelf((self: Some<number>) => self.value + 1); // 6 
+
+const none = Maybe.none;
+none.mapSelf((self: None) => 5); // 5
+```
+
 ### match
 
 Match the value with a RegExp expression and extract the requested group.
@@ -696,15 +725,103 @@ interface Maybe<T> {
 }
 ```
 
+### throw
+
+Throw the current value.
+
+Only allowed to run when the value is of type Error.
+
+For throwing on any value, use [throwW](#throww);
+
+```ts
+// signature
+
+interface Maybe<T> {
+  throw(this: Maybe<Error>): None;
+}
+```
+
 ```ts
 // usage
 
 import { Maybe } from '@nkp/maybe';
 
-const some = Maybe.from(5);
-some
-  .tapSelf((self) => console.log(`value was: ${self.value}`))
-  .map(function doWork() { /* ... */ });
+const some = Maybe.some(new Error('something went wrong'));
+some.throw()
+```
+
+### throwError
+
+Throw the current value if it's an instance of the Error class.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  throwError(): Maybe<Exclude<T, Error>>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some: Maybe<Error | number> =
+  Maybe.some<Error | number>(new Error('something went wrong'));
+
+const next: Maybe<number> = some.throwError();
+```
+
+### throwErrorLike
+
+Throw the current value if it's an Error-Like object.
+
+```ts
+// signature
+
+import { ErrorLike } from '@nkp/maybe';
+
+interface Maybe<T> {
+  throwErrorLike(): Maybe<Exclude<T, ErrorLike>>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some: Maybe<ErrorLike | number> =
+  Maybe.some<ErrorLike | number>({
+    message: 'something went wrong',
+  });
+
+const next: Maybe<number> = some.throwErrorLike();
+```
+
+### throwW
+
+Throw the current value.
+
+For stricter type checking to only allow throwing on errors, use [throw](#throw);
+
+```ts
+// signature
+
+interface Maybe<T> {
+  throwW(): None;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.some(5);
+
+const next: None = some.throwW();
 ```
 
 ## Publishing a new version

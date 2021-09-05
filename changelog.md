@@ -1,13 +1,33 @@
 # Changelog
 
+## 0.0.27 - 2021-09-05
+
+### Added
+
+- `MaybeBase.prototype.mapSelf`
+- `MaybeBase.prototype.throw`
+- `MaybeBase.prototype.throwW`
+- `MaybeBase.prototype.throwError`
+- `MaybeBase.prototype.throwErrorLike`
+- Tests for new methods
+
+### Changed
+
+- Updated readme.md
+- Updated dependencies
+
 ## 0.0.26 - 2021-09-01
+
+### Changed
 
 - Fixed type discrimination on `SomeLike` and `NoneLike`
 - Fixed tag version compatibility
 
 ## 0.0.25 - 2021-09-01
 
-- Added version type compatibility tests
+### Added
+
+- version type compatibility tests
 
 ## 0.0.24 - 2021-09-01
 

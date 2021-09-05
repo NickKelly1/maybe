@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { Maybe, MaybeKind, MaybeKindLike, MaybeLike, None, NoneLike, Some, SomeLike } from './maybe';
+import { ErrorLike, some } from '.';
+import { Maybe, MaybeKind, MaybeKindLike, MaybeLike, none, None, NoneLike, Some, SomeLike } from './maybe';
 
 describe('Maybe', () => {
   describe('.some(...)', () => {
@@ -94,6 +96,26 @@ describe('Maybe', () => {
         const maybe = Maybe.some(5).map((v) => v + 1);
         expect(maybe.isSome()).toBe(true);
         expect(maybe.value).toBe(6);
+      });
+    });
+
+    describe('.mapSelf(...)', () => {
+      it('Maps the instance to some other value', () => {
+        const maybe: Some<number> = some(5);
+
+
+        const m1: Some<number> = maybe.mapSelf((self) => self);
+        expect(maybe).toBe(m1);
+
+        const m2: number = maybe.mapSelf((self) => self.isNone()
+          ? 0
+          : self.unwrap() + 1);
+        expect(m2).toEqual(6);
+
+        const m3: number = (none as Maybe<number>).mapSelf((self) => self.isNone()
+          ? 0
+          : self.unwrap() + 1);
+        expect(m3).toEqual(0);
       });
     });
 
@@ -805,6 +827,122 @@ describe('Maybe', () => {
         const m1: Maybe<never>  = Maybe.none;
         const m2: Maybe<never> = m1.pluck('undef');
         expect(m2.isSome()).toEqual(false);
+      });
+    });
+
+    describe('throw(...)', ()  => {
+      it('doesn\'t accept non-errors', () => {
+        const s1 = some('doesn\'t accept strings');
+        // @ts-expect-error
+        () => s1.throw();
+
+        const s2 = some(0);
+        // @ts-expect-error
+        () => s2.throw();
+
+        const s3 = some({});
+        // @ts-expect-error
+        () => s3.throw();
+
+        const s4 = some([]);
+        // @ts-expect-error
+        () => s4.throw();
+
+        expect(true).toEqual(true);
+      });
+
+      it('throws Some', () => {
+        const err = new Error();
+        expect(() => some(err).throw()).toThrow(err);
+      });
+
+      it('doesn\'t throw None', () => {
+        expect(() => none.throw()).not.toThrow();
+      });
+    });
+
+    describe('throwW(...)', ()  => {
+      it('throws on any type', () => {
+        const s1 = some('accepts stringgs');
+        expect(() => s1.throwW()).toThrow();
+
+        const s2 = some(0);
+        expect(() => s2.throwW()).toThrow();
+
+        const s3 = some({});
+        expect(() => s3.throwW()).toThrow();
+
+        const s4 = some([]);
+        expect(() => s4.throwW()).toThrow();
+
+        const err = new Error();
+        expect(() => some(err).throw()).toThrow(err);
+      });
+
+      it('doesn\'t throw None', () => {
+        expect(() => none.throw()).not.toThrow();
+      });
+    });
+
+    describe('throwError(...)', () => {
+      it('should throw errors', () => {
+        const some = Maybe.some(new Error());
+        expect(() => {
+          const died: Maybe<never> = some.throwError();
+        }).toThrow();
+      });
+
+      it('should not throw non-errors', () => {
+        const some1: Some<number> = Maybe.some(5);
+        const survived1: Maybe<number> = some1.throwError();
+        expect(survived1.isSome()).toEqual(true);
+        expect(survived1.value).toEqual(5);
+
+        const some2 = Maybe.some<Error | number>(5);
+        const survived2: Maybe<number> = some2.throwError();
+        expect(survived2.isSome()).toEqual(true);
+        expect(survived2.value).toEqual(5);
+
+        const some3: Maybe<Error | number> = Maybe.none;
+        const survived3: Maybe<number> = some3.throwError();
+        expect(survived3.isNone()).toEqual(true);
+      });
+
+      it('should not throw on None', () => {
+        const some: Maybe<number | Error> = Maybe.none;
+        const survived: Maybe<number> = some.throwError();
+        expect(survived.isNone()).toEqual(true);
+      });
+    });
+
+    describe('throwErrorLike(...)', () => {
+      it('should throw errors', () => {
+        const some = Maybe.some({ message: 'error-like', });
+        expect(() => {
+          const died: Maybe<never> = some.throwErrorLike();
+        }).toThrow();
+      });
+
+      it('should not throw non-errors', () => {
+        const some1: Some<number> = Maybe.some<number>(5);
+        const survived1: Maybe<number>= some1.throwErrorLike();
+        expect(survived1.isSome()).toEqual(true);
+        expect(survived1.value).toEqual(5);
+
+        const some2: Some<number | ErrorLike> = Maybe.some<ErrorLike | number>(5);
+        const survived2: Maybe<number> = some2.throwErrorLike();
+        expect(survived2.isSome()).toEqual(true);
+        expect(survived2.value).toEqual(5);
+
+        const some3: Maybe<number | ErrorLike> = Maybe.none;
+        const survived3: Maybe<number> = some3.throwErrorLike();
+        expect(survived3.isNone()).toEqual(true);
+      });
+
+      it('should not throw on None', () => {
+        const some: Maybe<number | ErrorLike> = Maybe.none;
+        const survived: Maybe<number> = some.throwErrorLike();
+        expect(survived.isNone()).toEqual(true);
       });
     });
   });

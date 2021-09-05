@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type SOME = 'some';
 export const SOME: SOME = 'some';
 
@@ -7,6 +8,8 @@ export const NONE: NONE = 'none';
 export type TAG = SOME | NONE;
 
 export type Falsy = 0 | false | null | undefined;
+
+export interface ErrorLike { message: string }
 
 export interface MaybeKindLike<T> {
   tag: TAG;
@@ -51,6 +54,16 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   map<U>(callbackfn: (item: T) => U): Maybe<U> {
     if (this.isNone()) return this;
     return Maybe.some(callbackfn(this.value!));
+  }
+
+  /**
+   * Map this instance to another value and return that value
+   *
+   * @param callbackfn
+   * @returns
+   */
+  mapSelf<R>(callbackfn: (self: this) => R): R {
+    return callbackfn(this);
   }
 
   /**
@@ -404,6 +417,64 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   isNone(): this is None {
     return this.tag === NONE;
   }
+
+  /**
+   * Throw if Some
+   *
+   * TS: Only allow running on errors
+   *
+   * @param this
+   * @returns
+   */
+  throw(this: MaybeLike<Error>): None {
+    if (this.isNone()) return Maybe.none;
+    throw this.value;
+  }
+
+  /**
+   * Throw if Some
+   *
+   * Allows throwing any kind
+   *
+   * @returns
+   */
+  throwW(): None {
+    if (this.isNone()) return Maybe.none;
+    throw this.value;
+  }
+
+  /**
+   * Throw if Some with error-instance value
+   *
+   * @returns
+   */
+  throwError(): Maybe<Exclude<T, Error>> {
+    if (this.isNone())
+      return Maybe.none;
+
+    if (this.value && this.value instanceof Error)
+      throw this.value;
+
+    return Maybe.some(this.value as T) as T extends Error ? None : Maybe<Exclude<T, Error>>;
+  }
+
+  /**
+   * Throw if Some with error-like value
+   *
+   * @returns
+   */
+  throwErrorLike(): Maybe<Exclude<T, ErrorLike>> {
+    if (this.isNone())
+      return Maybe.none;
+
+    if (this.value && (
+      this.value instanceof Error
+      || typeof (this.value as any).message === 'string'
+    ))
+      throw this.value;
+
+    return Maybe.some(this.value as T) as T extends ErrorLike ? None : Maybe<Exclude<T, ErrorLike>>;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -530,4 +601,28 @@ export const Maybe = {
   isNone<T>(maybe: Maybe<T>): maybe is Some<T> {
     return maybe.isNone();
   },
+
+  /**
+   * Catch errors to None
+   */
+  catch<T>(fn: () => T): Maybe<T> {
+    try {
+      return Maybe.some(fn());
+    } catch (err) {
+      return none;
+    }
+  },
+
+  /**
+   * Catch errors to None
+   */
+  async catchAsync<T>(fn: () => T): Promise<Maybe<T>> {
+    try {
+      return Maybe.some(await fn());
+    } catch (err) {
+      return none;
+    }
+  },
 };
+
+export const some = Maybe.some;
