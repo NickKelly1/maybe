@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { isMaybeLike } from '.';
 import { Unary } from './types';
 import { $ANY } from './utility-types';
 
@@ -205,9 +206,6 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param mapFn
    * @returns
    */
-  // flatMapNone(mapFn: () => None): Maybe<T>;
-  // flatMapNone<U>(mapFn: () => Some<U>): Maybe<T | U>;
-  // flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U>;
   flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U> {
     if (this.isNone()) return mapFn();
     return this as Maybe<T | U>;
@@ -585,63 +583,46 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   }
 
 
+  all<U extends [...Maybeable[]]>(maybeables: Unary<this, [...U]>): Maybe<UnwrapMaybeables<U>> {
+    if (this.isNone()) return Maybe.none;
+    const results: unknown[] = [];
+    const _maybeables: Maybeable[] = maybeables(this);
+    const length = _maybeables.length;
+    for (let i = 0; i < length; i += 1) {
+      const next = unwrapMaybeable(_maybeables[i]!);
+      if (next.isNone()) return Maybe.none;
+      results.push(next.value);
+    }
+    return Maybe.some(results) as Maybe<UnwrapMaybeables<U>>;
+  }
+
   /**
    * Split the Maybe into many different values and join in a tuple
    *
    * Similar to Promise.all
    *
-   * @param splits
+   * @param maybeables
    */
-  all<M extends Record<PropertyKey, Unary<Some<T>, MaybeLike<unknown>>>>(splits: M): Maybe<{ [K in keyof M]: MaybeValue<ReturnType<M[K]>> }>;
-  all<R1>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>]): Maybe<[R1]>
-  all<R1, R2>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>]): Maybe<[R1, R2]>
-  all<R1, R2, R3>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>]): Maybe<[R1, R2, R3]>
-  all<R1, R2, R3, R4>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>]): Maybe<[R1, R2, R3, R4]>
-  all<R1, R2, R3, R4, R5>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>]): Maybe<[R1, R2, R3, R4, R5]>
-  all<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>]): Maybe<[R1, R2, R3, R4, R5, R6]>
-  all<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>, Unary<Some<T>, MaybeLike<R14>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>, Unary<Some<T>, MaybeLike<R14>>, Unary<Some<T>, MaybeLike<R15>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
-  all<R>(...splits: readonly (Unary<Some<T>, MaybeLike<R>>)[]): Maybe<R[]>;
-  all(mapOrFunction?: (Unary<Some<T>, MaybeLike<unknown>> | Record<PropertyKey, Unary<Some<T>, MaybeLike<unknown>>>), ...rest: Unary<Some<T>, MaybeLike<unknown>>[]): $ANY {
-    if (this.isNone()) return Maybe.none;
-
-    if (!mapOrFunction)
-      throw new TypeError('[@nkp/maybe::Maybe.all]: you must provide an object or at least one function');
-
-    if (typeof mapOrFunction === 'object') {
-      const mapping = mapOrFunction as Record<PropertyKey, Unary<Some<T>, MaybeLike<unknown>>>;
-      const mappedResults: Record<PropertyKey, $ANY> = {};
-      const keys = Object.keys(mapping);
-      for (let i = 0; i < keys.length; i += 1) {
-        const key = keys[i]!;
-        const next = mapping[key]!(this as Some<T>);
-        // short circuit on early none
-        if (next.isNone()) return Maybe.none;
-        // use the some value
-        mappedResults[key] = next.value;
-      }
-      return Maybe.some(mappedResults);
-    }
-
-    const zeroFn = mapOrFunction as Unary<Some<T>, MaybeLike<unknown>>;
-    // given an array of functions
-    // given an array
-    const fns = [zeroFn, ...rest,] as Unary<Some<T>, MaybeLike<unknown>>[];
-    const mappedResults: unknown[] = [];
-    for (let i = 0; i < fns.length; i += 1) {
-      const next = fns[i]!(this as Some<T>);
-      // short circuit on early none
+  allObj<M extends Record<PropertyKey, Maybeable>>(maybeables: Unary<this, M>): Maybe<{ [K in keyof M]: UnwrapMaybeable<M[K]> }> {
+    const _maybeables: M = maybeables(this);
+    const results: Record<PropertyKey, unknown> = {};
+    const keys = Object.keys(_maybeables);
+    const keysLen = keys.length;
+    for (let i = 0; i < keysLen; i += 1) {
+      const key = keys[i]!;
+      const next = unwrapMaybeable(_maybeables[key]!);
       if (next.isNone()) return Maybe.none;
-      mappedResults.push(next.value);
+      results[key] = next.value;
     }
-    return Maybe.some(mappedResults);
+    const symbols = Object.getOwnPropertySymbols(_maybeables);
+    const symLen = symbols.length;
+    for (let i = 0; i < symLen; i += 1) {
+      const sym = symbols[i]!;
+      const next = unwrapMaybeable(_maybeables[sym]!);
+      if (next.isNone()) return Maybe.none;
+      results[sym] = next.value;
+    }
+    return Maybe.some(results) as Maybe<{ [K in keyof M]: UnwrapMaybeable<M[K]> }>;
   }
 }
 
@@ -668,6 +649,35 @@ export interface NoneLike extends MaybeKindLike<never> {
 // All version of @nkp/maybe will remain compatible with MaybeLike<T>
 //
 export type MaybeLike<T> = SomeLike<T> | NoneLike;
+
+// unwrapping tuple types: https://instil.co/blog/crazy-powerful-typescript-tuple-types/
+
+export type Maybeable =
+  | unknown
+  | MaybeLike<unknown>
+  | (() => (unknown | Maybe<unknown>));
+
+// unwrapping maybeables:
+//  1. if the value is a fucntion:
+//    1. if the funciton returns a maybe, return its inner value
+//    2. if the function returns a non-maybe, return its value
+//  2. if the value is a non-function:
+//    1. if the value is a maybe, return its inner value
+//    1. if the value is a non-maybe, return its value
+
+export type UnwrapMaybeable<T> =
+  T extends ((...args: any[]) => infer M)
+    ? M extends MaybeLike<any>
+      ? MaybeValue<M>
+      : M
+    : T extends MaybeLike<any>
+      ? MaybeValue<T>
+      : T;
+
+export type UnwrapMaybeables<T extends readonly [...readonly unknown[]]> =
+    T extends [infer Head, ...infer Tail]
+        ? [UnwrapMaybeable<Head>, ...UnwrapMaybeables<Tail>]
+        : [];
 
 export interface Some<T> extends MaybeKind<T> {
   tag: SOME;
@@ -757,6 +767,7 @@ export const Maybe = {
    * @returns
    */
   isSome<T>(maybe: Maybe<T>): maybe is Some<T> {
+    if (!isMaybeLike(maybe)) return false;
     return maybe.isSome();
   },
 
@@ -766,7 +777,8 @@ export const Maybe = {
    * @param maybe
    * @returns
    */
-  isNone<T>(maybe: Maybe<T>): maybe is Some<T> {
+  isNone<T>(maybe: Maybe<T>): maybe is None {
+    if (!isMaybeLike(maybe)) return false;
     return maybe.isNone();
   },
 
@@ -794,3 +806,17 @@ export const Maybe = {
 };
 
 export const some = Maybe.some;
+
+
+/**
+ * Unwrap a maybeable
+ *
+ * @param maybeable
+ * @returns
+ */
+function unwrapMaybeable(maybeable: Maybeable): MaybeLike<unknown> {
+  // will either be a maybe or a value
+  const perhaps = typeof maybeable === 'function' ? maybeable() : maybeable;
+  if (isMaybeLike(perhaps)) { return perhaps; }
+  return Maybe.some(perhaps);
+}

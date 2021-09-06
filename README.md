@@ -103,31 +103,17 @@ Split and transform the `Maybe<T>` then join the results into a tuple (array).
 - If all values return `Some`, `.all` returns `Some`
 - If any value returns `None`, `.all` returns `None`
 
-Similar to `Promise.all`.
+Similar to [allObj](#allobj) and  `Promise.all`.
 
 ```ts
 // signature
 
-import { Unary, MaybeLike } from '@nkp/maybe';
+import { Unary, MaybeLike, Maybeable, UnwrapMaybeable } from '@nkp/maybe';
 
 interface Maybe<T> {
-  all<M extends Record<PropertyKey, Unary<Some<T>, MaybeLike<unknown>>>>(splits: M): Maybe<{ [K in keyof M]: MaybeValue<ReturnType<M[K]>> }>;
-  all<R1>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>]): Maybe<[R1]>
-  all<R1, R2>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>]): Maybe<[R1, R2]>
-  all<R1, R2, R3>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>]): Maybe<[R1, R2, R3]>
-  all<R1, R2, R3, R4>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>]): Maybe<[R1, R2, R3, R4]>
-  all<R1, R2, R3, R4, R5>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>]): Maybe<[R1, R2, R3, R4, R5]>
-  all<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>]): Maybe<[R1, R2, R3, R4, R5, R6]>
-  all<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>, Unary<Some<T>, MaybeLike<R14>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
-  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<Some<T>, MaybeLike<R1>>, Unary<Some<T>, MaybeLike<R2>>, Unary<Some<T>, MaybeLike<R3>>, Unary<Some<T>, MaybeLike<R4>>, Unary<Some<T>, MaybeLike<R5>>, Unary<Some<T>, MaybeLike<R6>>, Unary<Some<T>, MaybeLike<R7>>, Unary<Some<T>, MaybeLike<R8>>, Unary<Some<T>, MaybeLike<R9>>, Unary<Some<T>, MaybeLike<R10>>, Unary<Some<T>, MaybeLike<R11>>, Unary<Some<T>, MaybeLike<R12>>, Unary<Some<T>, MaybeLike<R13>>, Unary<Some<T>, MaybeLike<R14>>, Unary<Some<T>, MaybeLike<R15>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
-  all<R>(...splits: readonly (Unary<Some<T>, MaybeLike<R>>)[]): Maybe<R[]>;
+  all<U extends [...Maybeable[]]>(
+    maybeables: Unary<this, [...U]>
+  ): Maybe<UnwrapMaybeables<U>>;
 }
 
 ```
@@ -137,41 +123,74 @@ interface Maybe<T> {
 
 import { Maybe, some } from '@nkp/maybe';
 
-const numbersObject: Maybe<{
-  original: number,
-  plus1: number,
-  minus1: number,
-  power2: number,
-  isEven: boolean,
-  string: string,
-  array: number[],
-}> = some(5).all({
-  original: (self) => self,
-  plus1: (self) => self.map(n => n + 1),
-  minus1: (self) => self.map(n => n - 1),
-  power2: (self) => self.map(n => n ** 2),
-  isEven: (self) => self.map(n => !(n % 2)),
-  string: (self) => self.map(String),
-  array: (self) => self.map((n) => [n,]),
-});
+const number: Maybe<number> = some(5) as Maybe<number>;
 
-const numbersTuple: Maybe<[
+const numbers: Maybe<[
   original: number,
+  counting: number[],
   plus1: number,
-  minus1: number,
-  power2: number,
-  isEven: boolean,
   string: string,
-  array: number[],
-]> = some(5).all(
-  (self) => self,
-  (self) => self.map(n => n + 1),
-  (self) => self.map(n => n - 1),
-  (self) => self.map(n => n ** 2),
-  (self) => self.map(n => !(n % 2)),
-  (self) => self.map(String),
-  (self) => self.map((n) => [n,]),
-);
+  literal: string,
+  greetings: string,
+  div2: number,
+]> = number.all((self) => [
+  () => self,
+  () => [1, 2, 3,],
+  () => self.map(n => n + 1),
+  () => self.map(String),
+  'literal string value',
+  Maybe.from('merry christmas'),
+  self.map(n => n / 2),
+]);
+```
+
+#### allObj
+
+Split and transform the `Maybe<T>` then join the results into an object.
+
+- If all values return `Some`, `.all` returns `Some`
+- If any value returns `None`, `.all` returns `None`
+
+Similar to [all](#all).
+
+```ts
+// signature
+
+import { Unary, MaybeLike, Maybeable, UnwrapMaybeable } from '@nkp/maybe';
+
+interface Maybe<T> {
+  allObj<M extends Record<PropertyKey, Maybeable>>(
+    maybeables: Unary<this, M>
+  ): Maybe<{ [K in keyof M]: UnwrapMaybeable<M[K]> }>;
+}
+
+
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const number: Maybe<number> = some(5) as Maybe<number>;
+
+const numbers: Maybe<{
+  original: number,
+  counting: number[],
+  plus1: number,
+  string: string,
+  literal: string,
+  greetings: string,
+  div2: number,
+}> = number.allObj((self) => ({
+  original: () => self,
+  counting: () => [1, 2, 3,],
+  plus1: () => self.map(n => n + 1),
+  string: () => self.map(String),
+  literal: 'string literal',
+  greetings: Maybe.from('merry christmas'),
+  div2: self.map(n => n / 2),
+}));
 ```
 
 #### at

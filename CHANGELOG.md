@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.32 - 2021-09-06
+
+### Added
+
+- Added  `allObj`
+- Added tests
+
+### Changed
+
+- Significantly imporved `all` type signature using tuples and inference
+- Fixed some TS bugs in tests
+
 ## 0.0.31 - 2021-09-06
 
 ### Changed

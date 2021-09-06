@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { ErrorLike, some } from '.';
-import { Maybe, MaybeKind, MaybeKindLike, MaybeLike, none, None, NoneLike, Some, SomeLike } from './maybe';
+import { Maybe, MaybeLike, none, None, NoneLike, Some, SomeLike } from './maybe';
 
 describe('Maybe', () => {
   describe('.some(...)', () => {
@@ -1003,113 +1003,115 @@ describe('Maybe', () => {
       });
     });
 
-    describe('.all(...)', () => {
+    describe('.allObj(...)', () => {
       describe('Some', () => {
-        describe('object', () => {
-          it('should collapse to Some', () => {
-            const number = some(5);
+        it('should collapse to Some', () => {
+          const number: Maybe<number> = some(5) as Maybe<number>;
+
+          const numbers: Maybe<{
+            original: number,
+            counting: number[],
+            plus1: number,
+            minus1: number,
+            power2: number,
+            isEven: boolean,
+            string: string,
+            array: number[],
+            literal: string,
+            greetings: string,
+            div2: number,
+          }> = number.allObj((self) => ({
+            original: () => self,
+            counting: () => [1, 2, 3,],
+            plus1: () => self.map(n => n + 1),
+            minus1: () => self.map(n => n - 1),
+            power2: () => self.map(n => n ** 2),
+            isEven: () => self.map(n => !(n % 2)),
+            string: () => self.map(String),
+            array: () => self.map((n) => [n,]),
+            literal: 'hohoho',
+            greetings: Maybe.from('merry christmas'),
+            div2: self.map(n => n / 2),
+          }));
+
+          expect(numbers.isSome()).toEqual(true);
+          expect(numbers.value!.original).toEqual(5);
+          expect(numbers.value!.counting).toEqual([1, 2, 3,]);
+          expect(numbers.value!.plus1).toEqual(6);
+          expect(numbers.value!.minus1).toEqual(4);
+          expect(numbers.value!.power2).toEqual(25);
+          expect(numbers.value!.isEven).toEqual(false);
+          expect(numbers.value!.string).toEqual('5');
+          expect(numbers.value!.array).toEqual([5,]);
+          expect(numbers.value!.literal).toEqual('hohoho');
+          expect(numbers.value!.greetings).toEqual('merry christmas');
+          expect(numbers.value!.div2).toEqual(2.5);
+        });
+
+        describe('should collapse None', () => {
+          it('on Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+
             const numbers: Maybe<{
               original: number,
+              counting: number[],
               plus1: number,
               minus1: number,
               power2: number,
               isEven: boolean,
               string: string,
               array: number[],
-            }> = number.all({
-              original: (self) => self,
-              plus1: (self) => self.map(n => n + 1),
-              minus1: (self) => self.map(n => n - 1),
-              power2: (self) => self.map(n => n ** 2),
-              isEven: (self) => self.map(n => !(n % 2)),
-              string: (self) => self.map(String),
-              array: (self) => self.map((n) => [n,]),
-            });
-
-            expect(numbers.isSome()).toEqual(true);
-            expect(numbers.value!.original).toEqual(5);
-            expect(numbers.value!.plus1).toEqual(6);
-            expect(numbers.value!.minus1).toEqual(4);
-            expect(numbers.value!.power2).toEqual(25);
-            expect(numbers.value!.isEven).toEqual(false);
-            expect(numbers.value!.string).toEqual('5');
-            expect(numbers.value!.array).toEqual([5,]);
-          });
-
-          it('should to None', () => {
-            const number = some(5);
-            const numbers: Maybe<{
-              original: number,
-              plus1: number,
-              minus1: number,
-              power2: number,
-              isEven: boolean,
-              string: string,
-              array: number[],
-            }> = number.all({
-              original: (self) => self,
-              plus1: (self) => self.map(n => n + 1),
-              minus1: (self) => self.map(n => n - 1),
-              power2: (self) => self.map(n => n ** 2),
-              isEven: (self) => self.map(n => !(n % 2)),
-              string: (self) => Maybe.none,
-              array: (self) => self.map((n) => [n,]),
-            });
+              literal: string,
+              greetings: string,
+              div2: number,
+              nvr: never,
+            }> = number.allObj((self) => ({
+              original: () => self,
+              counting: () => [1, 2, 3,],
+              plus1: () => self.map(n => n + 1),
+              minus1: () => self.map(n => n - 1),
+              power2: () => self.map(n => n ** 2),
+              isEven: () => self.map(n => !(n % 2)),
+              string: () => self.map(String),
+              array: () => self.map((n) => [n,]),
+              literal: 'hohoho',
+              greetings: Maybe.from('merry christmas'),
+              div2: self.map(n => n / 2),
+              nvr: Maybe.none,
+            }));
 
             expect(numbers.isNone()).toEqual(true);
           });
-        });
+          it('on () => Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
 
-        describe('variadic', () => {
-          it('should collapse to Some', () => {
-            const number = some(5);
-            const numbers: Maybe<[
+            const numbers: Maybe<{
               original: number,
+              counting: number[],
               plus1: number,
               minus1: number,
               power2: number,
               isEven: boolean,
               string: string,
               array: number[],
-            ]> = number.all(
-              (self) => self,
-              (self) => self.map(n => n + 1),
-              (self) => self.map(n => n - 1),
-              (self) => self.map(n => n ** 2),
-              (self) => self.map(n => !(n % 2)),
-              (self) => self.map(String),
-              (self) => self.map((n) => [n,]),
-            );
-
-            expect(numbers.isSome()).toEqual(true);
-            expect(numbers.value![0]).toEqual(5);
-            expect(numbers.value![1]).toEqual(6);
-            expect(numbers.value![2]).toEqual(4);
-            expect(numbers.value![3]).toEqual(25);
-            expect(numbers.value![4]).toEqual(false);
-            expect(numbers.value![5]).toEqual('5');
-            expect(numbers.value![6]).toEqual([5,]);
-          });
-
-          it('should to None', () => {
-            const number = some(5);
-            const numbers: Maybe<[
-              original: number,
-              plus1: number,
-              minus1: number,
-              power2: number,
-              isEven: boolean,
-              string: string,
-              array: number[],
-            ]> = number.all(
-              (self) => self,
-              (self) => self.map(n => n + 1),
-              (self) => self.map(n => n - 1),
-              (self) => self.map(n => n ** 2),
-              (self) => self.map(n => !!(n % 2)),
-              (self) => self.map(String),
-              (self) => Maybe.none,
-            );
+              literal: string,
+              greetings: string,
+              div2: number,
+              nvr: never,
+            }> = number.allObj((self) => ({
+              original: () => self,
+              counting: () => [1, 2, 3,],
+              plus1: () => self.map(n => n + 1),
+              minus1: () => self.map(n => n - 1),
+              power2: () => self.map(n => n ** 2),
+              isEven: () => self.map(n => !(n % 2)),
+              string: () => self.map(String),
+              array: () => self.map((n) => [n,]),
+              literal: 'hohoho',
+              greetings: Maybe.from('merry christmas'),
+              div2: self.map(n => n / 2),
+              nvr: () => Maybe.none,
+            }));
 
             expect(numbers.isNone()).toEqual(true);
           });
@@ -1118,8 +1120,121 @@ describe('Maybe', () => {
 
       describe('None', () => {
         it('should work', () => {
-          const number = Maybe.none;
+          const number: None = none as None;
+
+          const numbers: Maybe<{
+            original: number,
+            counting: number[],
+            plus1: number,
+            minus1: number,
+            power2: number,
+            isEven: boolean,
+            string: string,
+            array: number[],
+            literal: string,
+            greetings: string,
+            div2: number,
+          }> = number.allObj((self) => ({
+            original: () => self,
+            counting: () => [1, 2, 3,],
+            plus1: () => self.map(n => n + 1),
+            minus1: () => self.map(n => n - 1),
+            power2: () => self.map(n => n ** 2),
+            isEven: () => self.map(n => !(n % 2)),
+            string: () => self.map(String),
+            array: () => self.map((n) => [n,]),
+            literal: 'hohoho',
+            greetings: Maybe.from('merry christmas'),
+            div2: self.map(n => n / 2),
+          }));
+
+          expect(numbers.isNone()).toEqual(true);
+        });
+      });
+    });
+
+    describe('.all(...)', () => {
+      describe('Some', () => {
+        it('should collapse to Some', () => {
+          const number: Maybe<number> = some(5) as Maybe<number>;
+
           const numbers: Maybe<[
+            original: number,
+            counting: number[],
+            plus1: number,
+            minus1: number,
+            power2: number,
+            isEven: boolean,
+            string: string,
+            array: number[],
+            literal: string,
+            greetings: string,
+            div2: number,
+          ]> = number.all((self) => [
+            () => self,
+            () => [1, 2, 3,],
+            () => self.map(n => n + 1),
+            () => self.map(n => n - 1),
+            () => self.map(n => n ** 2),
+            () => self.map(n => !(n % 2)),
+            () => self.map(String),
+            () => self.map((n) => [n,]),
+            'hohoho',
+            Maybe.from('merry christmas'),
+            self.map(n => n / 2),
+          ]);
+
+          expect(numbers.isSome()).toEqual(true);
+          expect(numbers.value![0]).toEqual(5);
+          expect(numbers.value![1]).toEqual([1, 2, 3,]);
+          expect(numbers.value![2]).toEqual(6);
+          expect(numbers.value![3]).toEqual(4);
+          expect(numbers.value![4]).toEqual(25);
+          expect(numbers.value![5]).toEqual(false);
+          expect(numbers.value![6]).toEqual('5');
+          expect(numbers.value![7]).toEqual([5,]);
+          expect(numbers.value![8]).toEqual('hohoho');
+          expect(numbers.value![9]).toEqual('merry christmas');
+          expect(numbers.value![10]).toEqual(2.5);
+        });
+
+        describe('should collapse to None', () => {
+          it('on Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+
+            const numbers: Maybe<[
+            original: number,
+            plus1: number,
+            minus1: number,
+            power2: number,
+            isEven: boolean,
+            string: string,
+            array: number[],
+            literal: string,
+            greetings: string,
+            div2: number,
+            none: never,
+          ]> = number.all((self) => [
+            () => self,
+            () => self.map(n => n + 1),
+            () => self.map(n => n - 1),
+            () => self.map(n => n ** 2),
+            () => self.map(n => !(n % 2)),
+            () => self.map(String),
+            () => self.map((n) => [n,]),
+            'hohoho',
+            Maybe.from('merry christmas'),
+            self.map(n => n / 2),
+            Maybe.none,
+          ]);
+
+            expect(numbers.isNone()).toEqual(true);
+          });
+
+          it('on () => Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+
+            const numbers: Maybe<[
               original: number,
               plus1: number,
               minus1: number,
@@ -1127,15 +1242,58 @@ describe('Maybe', () => {
               isEven: boolean,
               string: string,
               array: number[],
-            ]> = number.all(
-              (self) => self,
-              (self) => self.map(n => n + 1),
-              (self) => self.map(n => n - 1),
-              (self) => self.map(n => n ** 2),
-              (self) => self.map(n => !(n % 2)),
-              (self) => self.map(String),
-              (self) => self.map((n) => [n,]),
-            );
+              literal: string,
+              greetings: string,
+              div2: number,
+              none: never,
+            ]> = number.all((self) => [
+              () => self,
+              () => self.map(n => n + 1),
+              () => self.map(n => n - 1),
+              () => self.map(n => n ** 2),
+              () => self.map(n => !(n % 2)),
+              () => self.map(String),
+              () => self.map((n) => [n,]),
+              'hohoho',
+              Maybe.from('merry christmas'),
+              self.map(n => n / 2),
+              () => Maybe.none,
+            ]);
+
+            expect(numbers.isNone()).toEqual(true);
+          });
+        });
+      });
+
+      describe('None', () => {
+        it('should work', () => {
+          const number: None = none as None;
+
+          const numbers: Maybe<[
+            original: number,
+            plus1: number,
+            minus1: number,
+            power2: number,
+            isEven: boolean,
+            string: string,
+            array: number[],
+            literal: string,
+            greetings: string,
+            div2: number,
+            none: never,
+          ]> = number.all((self) => [
+            () => self,
+            () => self.map(n => n + 1),
+            () => self.map(n => n - 1),
+            () => self.map(n => n ** 2),
+            () => self.map(n => !(n % 2)),
+            () => self.map(String),
+            () => self.map((n) => [n,]),
+            'hohoho',
+            Maybe.from('merry christmas'),
+            self.map(n => n / 2),
+            () => Maybe.none,
+          ]);
 
           expect(numbers.isNone()).toEqual(true);
         });
