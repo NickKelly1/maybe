@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.31 - 2021-09-06
+
+### Changed
+
+- Updated `all` signature
+- Updated readme.md
+
 ## 0.0.30 - 2021-09-06
 
 ### Added
