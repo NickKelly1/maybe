@@ -1141,6 +1141,106 @@ describe('Maybe', () => {
         });
       });
     });
+
+    describe('parseInt', () => {
+      describe('should work', () => {
+        it('Some [17] -> Some [17]', () => {
+          const m1 = some(17).parseInt();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(17);
+        });
+
+        it('Some [\'17\'] -> Some [17]', () => {
+          const m2 = some('17').parseInt();
+          expect(m2.isSome()).toEqual(true);
+          expect(m2.value).toEqual(17);
+        });
+
+        it('Some [\'0.5\'] -> Some [0.5]', () => {
+          const m3 = some('0.5').parseInt();
+          expect(m3.isSome()).toEqual(true);
+          expect(m3.value).toEqual(0);
+        });
+
+        it('Some [false] -> None', () => {
+          const m4 = some(false).parseInt();
+          expect(m4.isNone()).toEqual(true);
+        });
+
+        it('Some [\'not a float\'] -> None', () => {
+          const m5 = some('not a float').parseInt();
+          expect(m5.isNone()).toEqual(true);
+        });
+
+        it('Some [{}] -> None', () => {
+          const m6 = some({}).parseInt();
+          expect(m6.isNone()).toEqual(true);
+        });
+
+        it('Some [[]] -> None', () => {
+          const m7 = some([]).parseInt();
+          expect(m7.isNone()).toEqual(true);
+        });
+
+        it('None -> None', () => {
+          const m8 = none.parseInt();
+          expect(m8.isNone()).toEqual(true);
+        });
+
+        it('Some [\'10\'] - (radix:8) -> Some [8]', () => {
+          const m9 = some('10').parseInt(8);
+          expect(m9.isSome()).toEqual(true);
+          expect(m9.value).toEqual(8);
+        });
+      });
+    });
+
+    describe('parseFloat', () => {
+      describe('should work', () => {
+        it('Some [17.01] -> Some [17.01]', () => {
+          const m1 = some(17.01).parseFloat();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(17.01);
+        });
+
+        it('Some [\'17.01\'] -> Some [17.01]', () => {
+          const m2 = some('17.01').parseFloat();
+          expect(m2.isSome()).toEqual(true);
+          expect(m2.value).toEqual(17.01);
+        });
+
+        it('Some [\'0.5\'] -> Some [0.5]', () => {
+          const m3 = some('0.5').parseFloat();
+          expect(m3.isSome()).toEqual(true);
+          expect(m3.value).toEqual(0.5);
+        });
+
+        it('Some [false] -> None', () => {
+          const m4 = some(false).parseFloat();
+          expect(m4.isNone()).toEqual(true);
+        });
+
+        it('Some [\'not a float\'] -> None', () => {
+          const m5 = some('not a float').parseFloat();
+          expect(m5.isNone()).toEqual(true);
+        });
+
+        it('Some [{}] -> None', () => {
+          const m6 = some({}).parseFloat();
+          expect(m6.isNone()).toEqual(true);
+        });
+
+        it('Some [[]] -> None', () => {
+          const m7 = some([]).parseFloat();
+          expect(m7.isNone()).toEqual(true);
+        });
+
+        it('None -> None', () => {
+          const m8 = none.parseFloat();
+          expect(m8.isNone()).toEqual(true);
+        });
+      });
+    });
   });
 
   describe('type version compatibility', () => {

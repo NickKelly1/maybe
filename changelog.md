@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.30 - 2021-09-06
+
+### Added
+
+- `parseInt`
+- `parseFloat`
+- Tests
+
+### Changed
+
+- Updated readme.md
+
 ## 0.0.29 - 2021-09-06
 
 ### Changed

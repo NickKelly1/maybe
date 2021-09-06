@@ -510,54 +510,53 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.some(this.value as T) as T extends ErrorLike ? None : Maybe<Exclude<T, ErrorLike>>;
   }
 
-  // /**
-  //  * TODO is this desirable? probably not
-  //  *
-  //  * Split the Maybe into many different values and join in a tuple
-  //  *
-  //  * Similar to Promise.all
-  //  *
-  //  * @param splits
-  //  */
-  // allAny<M extends Record<PropertyKey, Unary<this, unknown>>>(splits: M): Maybe<{ [K in keyof M]: ReturnType<M[K]> }>;
-  // allAny<R1>(...splits: readonly [Unary<this, R1>]): Maybe<[R1]>
-  // allAny<R1, R2>(...splits: readonly [Unary<this, R1>, Unary<this, R2>]): Maybe<[R1, R2]>
-  // allAny<R1, R2, R3>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>]): Maybe<[R1, R2, R3]>
-  // allAny<R1, R2, R3, R4>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>]): Maybe<[R1, R2, R3, R4]>
-  // allAny<R1, R2, R3, R4, R5>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>]): Maybe<[R1, R2, R3, R4, R5]>
-  // allAny<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>]): Maybe<[R1, R2, R3, R4, R5, R6]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>, Unary<this, R14>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
-  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>, Unary<this, R14>, Unary<this, R15>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
-  // allAny<R>(...splits: readonly (Unary<this, R>)[]): Maybe<R[]>;
-  // allAny(mapOrFunction?: (Unary<this, unknown> | Record<PropertyKey, Unary<this, unknown>>), ...rest: Unary<this, unknown>[]): $ANY {
-  //   if (this.isNone()) return Maybe.none;
 
-  //   if (!mapOrFunction)
-  //     throw new TypeError('[@nkp/maybe::Maybe.all]: you must provide an object or at least one function');
+  /**
+   * Attempt to parse the value as an integer
+   */
+  parseInt(radix?: number): Maybe<number> {
+    if (this.isNone()) return Maybe.none;
 
-  //   if (typeof mapOrFunction === 'object') {
-  //     const mapping = mapOrFunction as Record<PropertyKey, Unary<this, unknown>>;
-  //     const mappedResults: Record<PropertyKey, $ANY> = {};
-  //     Object.keys(mapping).map(key => {
-  //       mappedResults[key] = mapping[key]!(this);
-  //     });
-  //     return Maybe.some(mappedResults);
-  //   }
+    let parsed: number;
+    if (typeof this.value === 'number')
+      parsed = parseInt(String(this.value), radix);
 
-  //   const zeroFn = mapOrFunction as Unary<this, unknown>;
-  //   // given an array of functions
-  //   // given an array
-  //   const fns = [zeroFn, ...rest,] as Unary<this, unknown>[];
-  //   return Maybe.some([fns.map(split => split(this)),]);
-  // }
+    else if (typeof this.value === 'string')
+      parsed = parseInt(this.value, radix);
 
+    else {
+      try { parsed = parseInt(String(this.value)); }
+      catch (err) { return Maybe.none; }
+    }
+
+    if (Number.isNaN(parsed)) return Maybe.none;
+
+    return Maybe.some(parsed);
+  }
+
+
+  /**
+   * Attempt to parse the value as a float
+   */
+  parseFloat(): Maybe<number> {
+    if (this.isNone()) return Maybe.none;
+
+    let parsed: number;
+    if (typeof this.value === 'number')
+      parsed = parseFloat(String(this.value));
+
+    else if (typeof this.value === 'string')
+      parsed = parseFloat(this.value);
+
+    else {
+      try { parsed = parseFloat(String(this.value)); }
+      catch (err) { return Maybe.none; }
+    }
+
+    if (Number.isNaN(parsed)) return Maybe.none;
+
+    return Maybe.some(parsed);
+  }
 
 
   /**

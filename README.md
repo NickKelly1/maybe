@@ -46,6 +46,8 @@ JavaScript utilities for working with values that may not exist.
     - [notNull](#notNull)
     - [notNullable](#notNullable)
     - [notUndefined](#notUndefined)
+    - [parseFloat](#parsefloat)
+    - [parseInt](#parseint)
     - [pluck](#pluck)
     - [tap](#tap)
     - [tapNone](#tap-none)
@@ -743,6 +745,56 @@ import { Maybe } from '@nkp/maybe';
 const maybe = Maybe.from<string | undefined>('style.css');
 
 const defined: Maybe<string> = maybe.notUndefined();
+```
+
+### parseFloat
+
+Attempt to parse a string as a floating-point number. Uses the native `parseFloat` function internally.
+
+If the value is not a string then `parseFloat` will convert it to string.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  parseFloat(): Maybe<number>;
+}
+
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const string: Some<string> = some('10.5');
+const number: Maybe<number> = string.parseFloat();
+// Some [10.5]
+```
+
+### parseInt
+
+Attempt to parse a string as am integer. Uses the native `parseInt` function internally.
+
+If the value is not a string then `parseInt` will convert it to string.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  parseInt(radix?: number): Maybe<number>;
+}
+
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const string: Some<string> = some('11');
+const number: Maybe<number> = string.parseInt(8);
+// Some [9]
 ```
 
 ### pluck
