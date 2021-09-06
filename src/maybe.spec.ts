@@ -1195,6 +1195,70 @@ describe('Maybe', () => {
       });
     });
 
+    describe('.notNaN(...)', () => {
+      describe('should work', () => {
+        it('Some [1] -> Some[1]', () => {
+          const m1 = some(1).notNaN();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(1);
+        });
+        it('Some [\'1\'] -> Some[1]', () => {
+          const m1 = some('1').notNaN();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(1);
+        });
+        it('Some [\'not a number\'] -> None', () => {
+          const m1 = some('not a number').notNaN();
+          expect(m1.isNone()).toEqual(true);
+        });
+        it('Some [\'Number.NaN\'] -> None', () => {
+          const m1 = some(Number.NaN).notNaN();
+          expect(m1.isNone()).toEqual(true);
+        });
+        it('Some [\'Number.POSITIVE_INFINITY\'] -> None', () => {
+          const m1 = some(Number.POSITIVE_INFINITY).notNaN();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(Number.POSITIVE_INFINITY);
+        });
+        it('Some [\'Number.NEGATIVE_INFINITY\'] -> None', () => {
+          const m1 = some(Number.NEGATIVE_INFINITY).notNaN();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(Number.NEGATIVE_INFINITY);
+        });
+      });
+    });
+
+    describe('.finite(...)', () => {
+      describe('should work', () => {
+        it('Some [1] -> Some[1]', () => {
+          const m1 = some(1).finite();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(1);
+        });
+        it('Some [\'1\'] -> Some[1]', () => {
+          const m1 = some('1').finite();
+          expect(m1.isSome()).toEqual(true);
+          expect(m1.value).toEqual(1);
+        });
+        it('Some [\'not a number\'] -> None', () => {
+          const m1 = some('not a number').finite();
+          expect(m1.isNone()).toEqual(true);
+        });
+        it('Some [\'Number.NaN\'] -> None', () => {
+          const m1 = some(Number.NaN).finite();
+          expect(m1.isNone()).toEqual(true);
+        });
+        it('Some [\'Number.POSITIVE_INFINITY\'] -> None', () => {
+          const m1 = some(Number.POSITIVE_INFINITY).finite();
+          expect(m1.isNone()).toEqual(true);
+        });
+        it('Some [\'Number.NEGATIVE_INFINITY\'] -> None', () => {
+          const m1 = some(Number.NEGATIVE_INFINITY).finite();
+          expect(m1.isNone()).toEqual(true);
+        });
+      });
+    });
+
     describe('parseFloat', () => {
       describe('should work', () => {
         it('Some [17.01] -> Some [17.01]', () => {

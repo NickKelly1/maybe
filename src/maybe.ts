@@ -75,7 +75,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   map<U>(callbackfn: (item: T) => U): Maybe<U> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     return Maybe.some(callbackfn(this.value!));
   }
 
@@ -135,7 +135,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   flat(this: Maybe<None>): None
   flat(this: None): None
   flat(): T extends Maybe<Maybe<infer U>> ? Maybe<U> : Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     const value = this.unwrap();
 
     // value is not a Maybe<U>
@@ -220,7 +220,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   filter(filterFn: (item: T) => boolean): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     if (filterFn(this.value!)) return this as Maybe<T>;
     return Maybe.none;
   }
@@ -232,7 +232,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   gt(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     return this.filter((i) => Number(i) > Number(gt));
   }
 
@@ -243,7 +243,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   gte(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     return this.filter((i) => Number(i) >= Number(gt));
   }
 
@@ -254,7 +254,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   lt(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     return this.filter((i) => Number(i) < Number(gt));
   }
 
@@ -265,8 +265,34 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   lte(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     return this.filter((i) => Number(i) <= Number(gt));
+  }
+
+
+  /**
+   * Convert to a number
+   *
+   * If NaN, return None
+   */
+  notNaN(): Maybe<number> {
+    if (this.isNone()) return Maybe.none;
+    const number = Number(this.value);
+    if (Number.isNaN(number)) return Maybe.none;
+    return Maybe.some(number);
+  }
+
+  /**
+   * Convert to a number
+   *
+   * If not finite, return None
+   *
+   */
+  finite(): Maybe<number> {
+    if (this.isNone()) return Maybe.none;
+    const number = Number(this.value);
+    if (!Number.isFinite(number)) return Maybe.none;
+    return Maybe.some(number);
   }
 
   /**
@@ -276,7 +302,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   notMatching(regexp: RegExp): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     const _regexp = typeof regexp === 'string'
       ? new RegExp(regexp)
       : regexp;
@@ -344,7 +370,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   matching(regexp: string | RegExp): Maybe<T> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     const _regexp = typeof regexp === 'string'
       ? new RegExp(regexp)
       : regexp;
@@ -361,7 +387,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   match(regexp: string | RegExp): Maybe<RegExpMatchArray> {
-    if (this.isNone()) return this;
+    if (this.isNone()) return Maybe.none;
     const result = String(this.value).match(regexp);
     if (!result) return Maybe.none;
     return Maybe.some(result);

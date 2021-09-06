@@ -6,6 +6,8 @@
 
 - `parseInt`
 - `parseFloat`
+- `notNaN`
+- `finite`
 - Tests
 
 ### Changed

@@ -28,6 +28,7 @@ JavaScript utilities for working with values that may not exist.
     - [compact](#compact)
     - [exclude](#exclude)
     - [filter](#filter)
+    - [finite](#finite)
     - [flat](#flat)
     - [flatMap](#flatmap)
     - [flatMapNone](#flatmapnone)
@@ -42,20 +43,21 @@ JavaScript utilities for working with values that may not exist.
     - [mapSelf]($mapself)
     - [match](#match)
     - [matching](#matching)
-    - [notMatching](#notMatching)
-    - [notNull](#notNull)
-    - [notNullable](#notNullable)
-    - [notUndefined](#notUndefined)
+    - [notMatching](#notmatching)
+    - [notNaN](#notnan)
+    - [notNull](#notnull)
+    - [notNullable](#notnullable)
+    - [notUndefined](#notundefined)
     - [parseFloat](#parsefloat)
     - [parseInt](#parseint)
     - [pluck](#pluck)
     - [tap](#tap)
-    - [tapNone](#tap-none)
-    - [tapSelf](#tap-self)
-    - [throw]($mapself)
-    - [throwError]($mapself)
-    - [throwErrorLike]($mapself)
-    - [throwW]($mapself)
+    - [tapNone](#tapnone)
+    - [tapSelf](#tapself)
+    - [throw]($throw)
+    - [throwError]($throwerror)
+    - [throwErrorLike]($throwerrorlike)
+    - [throwW]($throww)
 
 ## Installation
 
@@ -307,6 +309,34 @@ const some = Maybe
   .from(5)        // Some [5]
   .filter(lt(6))  // Some [5]
   .filter(lt(4)); // None
+```
+
+#### finite
+
+Conver the value to a number.
+
+- if the number is finite returns `Some<number>`
+- if the number is not finite, including `Number.NaN`, returns `None`
+
+```ts
+// signature
+
+interface Maybe<T> {
+  finite(): Maybe<number>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+some(5).finite();                          // Some [5]
+some('5').finite();                        // Some [5]
+some('5.9999').finite();                   // Some [5.9999]
+some('not a number').finite();             // None
+some(Number.POSITIVE_INFINITY).finite();   // None
+some(Number.NEGATIVE_INFINITY).finite();   // None
 ```
 
 #### flat
@@ -679,6 +709,34 @@ some.notMatching(/\.css$/); // None
 
 // remove .js
 some.notMatch(/\.js$/); // Some ['style.css']
+```
+
+#### notNaN
+
+Conver the value to a number.
+
+- if the number is `Number.NaN` returns `None`
+- if the number is not `Number.NaN`, including `Number.POSITIVE_INFINITY` and `Number.NEGATIVE_INFINITY`, returns `Some<number>`
+
+```ts
+// signature
+
+interface Maybe<T> {
+  notNaN(): Maybe<number>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+some(5).notNaN();                          // Some [5]
+some('5').notNaN();                        // Some [5]
+some('5.9999').notNaN();                   // Some [5.9999]
+some('not a number').notNaN();             // None
+some(Number.POSITIVE_INFINITY).notNaN();   // Some [Number.POSITIVE_INFINITY]
+some(Number.NEGATIVE_INFINITY).notNaN();   // Some [Number.NEGATIVE_INFINITY]
 ```
 
 ### notNull
