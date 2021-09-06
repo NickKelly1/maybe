@@ -94,9 +94,10 @@ let maybe: Maybe<number> = Maybe.from(5);
 
 #### all
 
-Split the Maybe into transformations and join the results into a Maybe tuple (array).
+Split and transform the `Maybe<T>` then join the results into a tuple (array).
 
-Returns `None` on the first `None` returned from a callback.
+- If all values return `Some`, `.all` returns `Some`
+- If any value returns `None`, `.all` returns `None`
 
 Similar to `Promise.all`.
 
