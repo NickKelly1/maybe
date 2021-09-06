@@ -29,7 +29,8 @@
     "publish:prepare": "cp package.json dist && cp LICENSE dist && cp README.md dist",
     "lint": "eslint . --ext '*/**/*.{js,jsx,ts,tsx}'",
     "lint:fix": "eslint . --ext '*/**/*.{js,jsx,ts,tsx}' --fix",
-    "upgrade": "npm-check --update"
+    "upgrade": "npm-check --update",
+    "check": "tsc -p ."
   },
   "devDependencies": {
     "@jest/types": "^27.1.0",

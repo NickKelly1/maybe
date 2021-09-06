@@ -1,10 +1,28 @@
 # Changelog
 
+## 0.0.33 - 2021-09-06
+
+### Added
+
+- `bimap`
+- `flatBimap`
+- `matchAll`
+- `repeat`
+- `replace`
+- `slice`
+- `tapBoth`
+
+### Changed
+
+- Improved version compatibility
+- Improved typings
+- Fixed bugs with `flatMapNone` and `mapNone`
+
 ## 0.0.32 - 2021-09-06
 
 ### Added
 
-- Added  `allObj`
+- Added `allObj`
 - Added tests
 
 ### Changed

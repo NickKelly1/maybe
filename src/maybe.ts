@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import { isMaybeLike } from '.';
 import { Unary } from './types';
 import { $ANY } from './utility-types';
 
@@ -18,6 +17,10 @@ export interface ErrorLike { message: string }
 
 export type MaybeValue<T extends MaybeKindLike<any>> = T extends SomeLike<any> ? T['zV'] : never;
 
+export interface IHasSlice {
+  slice(start?: number, end?: number): IHasSlice;
+}
+
 export interface MaybeKindLike<T> {
   readonly tag: TAG;
   readonly value: T | undefined;
@@ -26,18 +29,39 @@ export interface MaybeKindLike<T> {
   readonly zV: T;
 }
 
+// unique for each file
+// if the project has multiple versions of Maybe,
+// their `version` will be different (even if it is
+// actuall the same npm "version"...)
+const version = Symbol('version');
+
 /**
  * Base class for Some and None
  */
 export class MaybeKind<T> implements MaybeKindLike<T> {
   // virtual property
   readonly zV!: T;
+  protected get version(): symbol { return version; }
 
   constructor(
     public readonly tag: TAG,
     public readonly value: T | undefined = undefined,
   ) {
     //
+  }
+
+  /**
+   * Ensure the instance is compatible with this version of the library
+   *
+   * @param like
+   * @returns
+   */
+  protected _compatible<T>(like: MaybeLike<T>): Maybe<T> {
+    if (this.version === (like as any).version) {
+      return like as Maybe<T>;
+    }
+    if (like.isSome()) return some(like.value);
+    return none;
   }
 
   protected _arr: undefined | unknown[];
@@ -56,6 +80,32 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return undefined;
   }
 
+  /**
+   * Map both sides of the value to a new Some
+   *
+   * @param onSome
+   * @param onNone
+   * @returns
+   */
+  bimap<S, N>(onSome: (value: T) => S, onNone: () => N): Maybe<S | N> {
+    if (this.isNone()) return this._compatible(some(onNone()));
+    return Maybe.some(onSome(this.value!));
+  }
+
+  /**
+   * Map both sides of the value to a new Some
+   *
+   * @param onSome
+   * @param onNone
+   * @returns
+   */
+  flatBimap<S extends MaybeLike<any>, N extends MaybeLike<any>>(
+    onSome: (value: T) => S,
+    onNone: () => N
+  ): Maybe<MaybeValue<S> | MaybeValue<N>> {
+    if (this.isNone()) return this._compatible(onNone());
+    return this._compatible(onSome(this.value!));
+  }
 
   /**
    * Remove falsy values
@@ -75,7 +125,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param callbackfn
    * @returns
    */
-  map<U>(callbackfn: (item: T) => U): Maybe<U> {
+  map<U>(callbackfn: (value: T) => U): Maybe<U> {
     if (this.isNone()) return Maybe.none;
     return Maybe.some(callbackfn(this.value!));
   }
@@ -124,6 +174,19 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   }
 
   /**
+   * Map both sides of the value to a new Some
+   *
+   * @param onSome
+   * @param onNone
+   * @returns
+   */
+  tapBoth(onSome: (value: T) => unknown, onNone: () => unknown): this {
+    if (this.isNone()) onNone();
+    else onSome(this.value as T);
+    return this;
+  }
+
+  /**
    * Flatten the maybe
    *
    * @param mapFn
@@ -167,10 +230,10 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   /**
    * Flat map the value
    *
-   * @param mapFn
+   * @param callbackfn
    * @returns
    */
-  flatMap<U extends MaybeLike<any>>(mapFn: (item: T) => U):
+  flatMap<U extends MaybeLike<any>>(callbackfn: (value: T) => U):
     this extends SomeLike<T> ?
       U extends SomeLike<any> ? Some<MaybeValue<U>>
       : U extends None ? None
@@ -179,7 +242,28 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     : Maybe<MaybeValue<U>>
   {
     if (this.isNone()) return this as $ANY;
-    return mapFn(this.value!) as $ANY;
+    return this._compatible(callbackfn(this.value!)) as $ANY;
+  }
+
+  /**
+   * Map the none side of this option
+   *
+   * @param callbackfn
+   * @returns
+   */
+  flatMapNone<U extends MaybeLike<any>>(callbackfn: () => Maybe<U>):
+    this extends SomeLike<T>
+      ? Some<T>
+    : this extends NoneLike
+      ? U extends SomeLike<any>
+        ? Some<MaybeValue<U>>
+        : U extends NoneLike
+        ? None
+        : Maybe<MaybeValue<U>>
+    : Maybe<MaybeValue<U>>
+  {
+    if (this.isNone()) return Maybe.none as $ANY;
+    return this._compatible(callbackfn()) as $ANY;
   }
 
   /**
@@ -190,25 +274,11 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    */
   mapNone<U>(mapFn: () => U):
     this extends SomeLike<T> ? Some<T>
-    : this extends NoneLike ?
-      U extends SomeLike<any> ? Some<MaybeValue<U>>
-      : U extends NoneLike ? None
-      : Maybe<U>
+    : this extends NoneLike ? Some<U>
     : Maybe<T | U>
   {
     if (this.isNone()) return Maybe.some(mapFn()) as $ANY;
     return this as $ANY;
-  }
-
-  /**
-   * Map the none side of this option
-   *
-   * @param mapFn
-   * @returns
-   */
-  flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U> {
-    if (this.isNone()) return mapFn();
-    return this as Maybe<T | U>;
   }
 
   /**
@@ -367,7 +437,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param regexp
    * @returns
    */
-  matching(regexp: string | RegExp): Maybe<T> {
+  matching(regexp: RegExp | string): Maybe<T> {
     if (this.isNone()) return Maybe.none;
     const _regexp = typeof regexp === 'string'
       ? new RegExp(regexp)
@@ -384,11 +454,26 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param regexp
    * @returns
    */
-  match(regexp: string | RegExp): Maybe<RegExpMatchArray> {
+  match(regexp: RegExp | string): Maybe<RegExpMatchArray> {
     if (this.isNone()) return Maybe.none;
     const result = String(this.value).match(regexp);
     if (!result) return Maybe.none;
     return Maybe.some(result);
+  }
+
+  /**
+   * Match All
+   *
+   * @param regexp
+   * @returns
+   */
+  matchAll(regexp: RegExp | string): Maybe<RegExpMatchArray[]> {
+    if (this.isNone()) return Maybe.none;
+    const _regexp: RegExp = typeof regexp === 'string'
+      ? new RegExp(regexp, 'g')
+      : regexp;
+    const result = String(this.value).matchAll(_regexp);
+    return some(Array.from(result));
   }
 
   /**
@@ -485,7 +570,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   throw(this: MaybeLike<Error>): None {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     throw this.value;
   }
 
@@ -497,9 +582,76 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   throwW(): None {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     throw this.value;
   }
+
+  /**
+   * Slice the contents
+   *
+   * @param start
+   * @param end
+   * @returns
+   */
+  slice(this: MaybeLike<IHasSlice>, start?: number, end?: number):
+    this extends SomeLike<T> ? Some<T>
+    : this extends NoneLike ? None
+    : Maybe<T>
+  {
+    if (this.isNone()) return none as $ANY;
+    const value = this.value;
+    const sliced = value.slice(start, end);
+    return Maybe.some(sliced as any as T) as $ANY;
+  }
+
+  /**
+   * Repeat the string `count` times
+   *
+   * @param this
+   * @param count
+   * @returns
+   */
+  repeat(this: MaybeLike<string>, count: number):
+    this extends SomeLike<string> ? Some<string>
+    : this extends NoneLike ? None
+    : Maybe<string>
+  {
+    if (this.isNone()) return none as $ANY;
+    const value = this.value;
+    const repeated = value.repeat(count);
+    return Maybe.some(repeated) as $ANY;
+  }
+
+  /**
+   * Replace the string using the expression
+   *
+   * @param this
+   * @param searchValue
+   * @param replaceValue
+   */
+  replace(this: MaybeLike<string>, searchValue: RegExp | string, replaceValue: string):
+    this extends SomeLike<string> ? Some<string>
+    : this extends NoneLike ? None
+    : Maybe<string>
+  {
+    if (this.isNone()) return Maybe.none as $ANY;
+    const replaced = this.value.replace(searchValue, replaceValue);
+    return Maybe.some(replaced) as $ANY;
+  }
+
+  /**
+   * Coerce the value to a string
+   *
+   * @returns
+   */
+  string(): Maybe<string> {
+    try {
+      return some(String(this.value));
+    } catch (e) {
+      return none;
+    }
+  }
+
 
   /**
    * Throw if Some with error-instance value
@@ -819,4 +971,20 @@ function unwrapMaybeable(maybeable: Maybeable): MaybeLike<unknown> {
   const perhaps = typeof maybeable === 'function' ? maybeable() : maybeable;
   if (isMaybeLike(perhaps)) { return perhaps; }
   return Maybe.some(perhaps);
+}
+
+/**
+ * Is the value MaybeLike?
+ *
+ * @param unk
+ * @returns
+ */
+export function isMaybeLike<T = unknown>(unk: unknown): unk is MaybeLike<T> {
+  if (!unk) return false;
+  if (unk instanceof MaybeKind) return true;
+  const tag = (unk as any).tag;
+  if (tag !== SOME && tag !== NONE) return false;
+  if (!(typeof (unk as any).isSome === 'function')) return false;
+  if (!(typeof (unk as any).isNone === 'function')) return false;
+  return true;
 }

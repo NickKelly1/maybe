@@ -24,12 +24,15 @@ JavaScript utilities for working with values that may not exist.
   - [Creating a Maybe](#creating-a-maybe)
   - [Methods](#methods)
     - [all](#all)
+    - [allObj](#allobj)
     - [at](#at)
+    - [bimap](#bimap)
     - [compact](#compact)
     - [exclude](#exclude)
     - [filter](#filter)
     - [finite](#finite)
     - [flat](#flat)
+    - [flatBimap](#flatbimap)
     - [flatMap](#flatmap)
     - [flatMapNone](#flatmapnone)
     - [gt](#gt)
@@ -42,6 +45,7 @@ JavaScript utilities for working with values that may not exist.
     - [mapNone](#mapnone)
     - [mapSelf]($mapself)
     - [match](#match)
+    - [matchAll](#matchall)
     - [matching](#matching)
     - [notMatching](#notmatching)
     - [notNaN](#notnan)
@@ -51,7 +55,11 @@ JavaScript utilities for working with values that may not exist.
     - [parseFloat](#parsefloat)
     - [parseInt](#parseint)
     - [pluck](#pluck)
+    - [repeat](#repeat)
+    - [replace](#replace)
+    - [slice](#slice)
     - [tap](#tap)
+    - [tapBoth](#tapboth)
     - [tapNone](#tapnone)
     - [tapSelf](#tapself)
     - [throw]($throw)
@@ -260,6 +268,33 @@ string.at(3); // None
 
 ```
 
+### bimap
+
+Map both sides of the `Maybe` into a `Some`
+
+```ts
+// signature
+
+interface Maybe<T> {
+  bimap<S, N>(
+    onSome: (value: T) => S,
+    onNone: () => N
+  ): Maybe<S | N>
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const score: Maybe<number> = Maybe.from(80);
+const report: Some<number> = maybe.bimap(
+  (score) => `scored: ${score}`,
+  () => 'no score',
+);
+```
+
 #### compact
 
 Remove falsy values from the Maybe.
@@ -378,6 +413,38 @@ import { Maybe } from '@nkp/maybe';
 const nested: Maybe<Maybe<number>> = Maybe.from(Maybe.from(5));
 
 const flattened: Maybe<number> = nested.flat();
+```
+
+### flatBimap
+
+Map both sides of the `Maybe` into another `Maybe` and flatten.
+
+```ts
+// signature
+
+import { MaybeValue, MaybeLike } from '@nkp/maybe';
+
+interface Maybe<T> {
+  flatBimap<S extends MaybeLike<any>, N extends MaybeLike<any>>(
+    onSome: (value: T) => S,
+    onNone: () => N
+  ): Maybe<MaybeValue<S> | MaybeValue<N>> {
+}
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const hex: Maybe<string> = Maybe.from('#ffaa33');
+const parsed: Maybe<number | null> = maybe.flatBimap(
+  // value was provided but may be invalid
+  // if invalid, turn into None
+  (string) => some(string).replace(/^#/. '').parseint(16),
+  // no value provided, set a default
+  () => some('aabbcc').parseInt(16),
+);
 ```
 
 #### flatMap
@@ -653,13 +720,16 @@ none.mapSelf((self: None) => 5); // 5
 
 ### match
 
-Match the value with a RegExp expression and extract the requested group.
+Match the value against a RegExp.
+
+- If matched returns `Some`
+- If failed returns `None`
 
 ```ts
 // signature
 
 interface Maybe<T> {
-  match(regexp: string | RegExp): Maybe<RegExpMatchArray>;
+  match(regexp: RegExp | string): Maybe<RegExpMatchArray>;
 }
 ```
 
@@ -678,6 +748,42 @@ some.match(/(.*)\.js$/); // None
 some.match(/(.*)\.([^.]*)$/); // Some [['style.css', 'css', ...]]
 ```
 
+### matchAll
+
+Match All using the RegExp.
+
+Similar to `String.prototype.matchAll`.
+
+Don't forget the `g` RegExp flat required for `String.prototype.matchAll`!
+
+```ts
+// signature
+
+interface Maybe<T> {
+  matchAll(regexp: RegExp | string): Maybe<RegExpMatchArray[]>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const text = Maybe.from(`multi
+line string with #ffaa11
+some hex colours
+hidden #aabbcc within
+`);
+
+text.matchAll(/#[0-9a-f]{6}[0-9a-f]{0,2}/mig);
+/**
+ * Some [[
+ *  RegExpMatchArray [#ffaa11]
+ *  RegExpMatchArray [#aabbcc]
+ * ]]
+ */
+```
+
 ### matching
 
 Filter in values matching the given regex.
@@ -686,7 +792,7 @@ Filter in values matching the given regex.
 // signature
 
 interface Maybe<T> {
-  matching(regexp: string | RegExp): Maybe<string>;
+  matching(regexp: RegExp | string): Maybe<string>;
 }
 ```
 
@@ -712,7 +818,7 @@ Filter out values matching the given regex.
 // signature
 
 interface Maybe<T> {
-  notMatching(regexp: string | RegExp): Maybe<string>;
+  notMatching(regexp: RegExp | string): Maybe<string>;
 }
 ```
 
@@ -898,9 +1004,101 @@ const cat: Some<Cat> = Maybe.some<Cat>({ name: 'Furball', });
 const name: Maybe<string> = cat.pluck('name'); // Some ['Furball']
 ```
 
+### repeat
+
+Repeat a string `count` times.
+
+Similar to `String.prototype.repeat`.
+
+```ts
+// signature
+
+import { MaybeLike } from '@nkp/maybe';
+
+interface Maybe<T> {
+  repeat(
+    this: MaybeLike<string>,
+    count: number,
+  ): Maybe<string>
+}
+```
+
+```ts
+// usage
+
+import { some } from '@nkp/maybe';
+
+some(':(').repeat(0); // Some ['']
+some('merry christmas').repeat(1); // Some ['merry christmas']
+some(':)').repeat(5); // Some [':):):):):)']
+```
+
+### Replace
+
+Replace part of a string.
+
+Similar to `String.prototype.replace`.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  replace(
+    this: MaybeLike<string>,
+    searchValue: RegExp | string, replaceValue: string
+  ): Maybe<string>
+}
+```
+
+```ts
+// usage
+
+import { some } from '@nkp/maybe';
+
+some("Let's eat, Grandma!").replace(/,/, '')
+// Some ['Let's eat Grandma!']
+```
+
+### Slice
+
+Extract a subsection of the array or string.
+
+Similar to `String.prototype.slice` and `Array.prototype.slice`
+
+```ts
+// signature
+
+import { IHasSlice } from '@nkp/iterable';
+
+interface Maybe<T> {
+  slice(
+    this: MaybeLike<IHasSlice>,
+    start?: number,
+    end?: number
+  ): Maybe<T>;
+}
+```
+
+```ts
+// usage
+
+import { some } from '@nkp/maybe';
+
+some('collapsible umbrella lady').slice(21);
+// Some ['collapsible unmbrella']
+
+some('collapsible umbrella lady').slice(12, 21);
+// Some ['collapsible lady']
+
+some(['collapsible', 'umbrella', 'lady']).slice(0, 1);
+// Some [['umbrella', 'lady']]
+```
+
 ### tap
 
-Call a synchronous side effect on each some.
+Fire a callback on the `Some` side.
+
+Does not affect the `Maybe`.
 
 ```ts
 // signature
@@ -921,9 +1119,41 @@ some
   .map(function doWork() { /* ... */ });
 ```
 
+### tapBoth
+
+Fire a callback on both the `Some` and `None` sides.
+
+Does not affect the `Maybe`.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  tapBoth(
+    onSome: (value: T) => unknown,
+    onNone: () => unknown
+  ): this 
+}
+```
+
+```ts
+// usage
+
+import { Maybe } from '@nkp/maybe';
+
+const some = Maybe.from(5);
+some
+  .tapBoth(
+    value => console.log(`the value is: ${value}`),
+    () => console.log('the value doesn\'t exist'),
+  )
+```
+
 ### tapNone
 
-Call a synchronous side effect if the type is `None`.
+Fire a callback on `None` side.
+
+Does not affect the `Maybe`.
 
 ```ts
 // signature

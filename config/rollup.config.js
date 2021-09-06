@@ -32,7 +32,6 @@ const config = {
     resolve(),
     commonjs(),
     typescript({ tsconfig: 'config/tsconfig.build.json', }),
-    json(),
   ],
 };
 
