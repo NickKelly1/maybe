@@ -23,7 +23,9 @@ JavaScript utilities for working with values that may not exist.
 - [Usage](#usage)
   - [Creating a Maybe](#creating-a-maybe)
   - [Methods](#methods)
+    - [all](#all)
     - [at](#at)
+    - [compact](#compact)
     - [exclude](#exclude)
     - [filter](#filter)
     - [flat](#flat)
@@ -90,6 +92,83 @@ let maybe: Maybe<number> = Maybe.from(5);
 
 ### Methods
 
+#### all
+
+Split the Maybe into transformations and join the results into a Maybe tuple (array).
+
+Returns `None` on the first `None` returned from a callback.
+
+Similar to `Promise.all`.
+
+```ts
+// signature
+
+import { Unary, MaybeLike } from '@nkp/maybe';
+
+interface Maybe<T> {
+  all<M extends Record<PropertyKey, Unary<this, MaybeLike<unknown>>>>(splits: M): Maybe<{ [K in keyof M]: MaybeValue<ReturnType<M[K]>> }>;
+  all<R1>(...splits: readonly [Unary<this, MaybeLike<R1>>]): Maybe<[R1]>
+  all<R1, R2>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>]): Maybe<[R1, R2]>
+  all<R1, R2, R3>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>]): Maybe<[R1, R2, R3]>
+  all<R1, R2, R3, R4>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>]): Maybe<[R1, R2, R3, R4]>
+  all<R1, R2, R3, R4, R5>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>]): Maybe<[R1, R2, R3, R4, R5]>
+  all<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>]): Maybe<[R1, R2, R3, R4, R5, R6]>
+  all<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>, Unary<this, MaybeLike<R14>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>, Unary<this, MaybeLike<R14>>, Unary<this, MaybeLike<R15>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
+  all<R>(...splits: readonly (Unary<this, R>)[]): Maybe<R[]>;
+}
+
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const numbersObject: Maybe<{
+  original: number,
+  plus1: number,
+  minus1: number,
+  power2: number,
+  isEven: boolean,
+  string: string,
+  array: number[],
+}> = some(5).all({
+  original: (self) => self,
+  plus1: (self) => self.map(n => n + 1),
+  minus1: (self) => self.map(n => n - 1),
+  power2: (self) => self.map(n => n ** 2),
+  isEven: (self) => self.map(n => !(n % 2)),
+  string: (self) => self.map(String),
+  array: (self) => self.map((n) => [n,]),
+});
+
+const numbersTuple: Maybe<[
+  original: number,
+  plus1: number,
+  minus1: number,
+  power2: number,
+  isEven: boolean,
+  string: string,
+  array: number[],
+]> = some(5).all(
+  (self) => self,
+  (self) => self.map(n => n + 1),
+  (self) => self.map(n => n - 1),
+  (self) => self.map(n => n ** 2),
+  (self) => self.map(n => !(n % 2)),
+  (self) => self.map(String),
+  (self) => self.map((n) => [n,]),
+);
+```
+
 #### at
 
 If the value is iterable, retrieve it's `i'th` element's value.
@@ -155,6 +234,28 @@ string.at(2); // Some [3]
 string.at(3); // None
 // ...
 
+```
+
+#### compact
+
+Remove falsy values from the Maybe.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  compact(): Maybe<NonNullable<T>>;
+}
+```
+
+```ts
+// usage
+
+import { Maybe, some } from '@nkp/maybe';
+
+const falseable: Maybe<string | number | null | undefined> = some(0);
+
+const trueable: Maybe<string | number> = falseable.compact();
 ```
 
 #### exclude

@@ -1,3 +1,7 @@
+/* eslint-disable max-len */
+import { Unary } from './types';
+import { $ANY } from './utility-types';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type SOME = 'some';
 export const SOME: SOME = 'some';
@@ -11,17 +15,23 @@ export type Falsy = 0 | false | null | undefined;
 
 export interface ErrorLike { message: string }
 
+export type MaybeValue<T extends MaybeKindLike<any>> = T extends SomeLike<any> ? T['zV'] : never;
+
 export interface MaybeKindLike<T> {
-  tag: TAG;
-  value: T | undefined;
+  readonly tag: TAG;
+  readonly value: T | undefined;
   isSome(): this is SomeLike<T>;
   isNone(): this is NoneLike;
+  readonly zV: T;
 }
 
 /**
  * Base class for Some and None
  */
 export class MaybeKind<T> implements MaybeKindLike<T> {
+  // virtual property
+  readonly zV!: T;
+
   constructor(
     public readonly tag: TAG,
     public readonly value: T | undefined = undefined,
@@ -43,6 +53,19 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
       return this._arr;
     }
     return undefined;
+  }
+
+
+  /**
+   * Remove falsy values
+   *
+   * @param this
+   * @returns
+   */
+  compact(): Maybe<NonNullable<T>> {
+    if (this.isNone()) return Maybe.none;
+    if (!this.value) return Maybe.none;
+    return Maybe.some(this.value) as Maybe<NonNullable<T>>;
   }
 
   /**
@@ -146,12 +169,16 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param mapFn
    * @returns
    */
-  flatMap(mapFn: (item: T) => None): Maybe<T>;
-  flatMap<U>(mapFn: (item: T) => Some<U>): Maybe<U>;
-  flatMap<U>(mapFn: (item: T) => Maybe<U>): Maybe<U>;
-  flatMap<U>(mapFn: (item: T) => Maybe<U>): Maybe<U> {
-    if (this.isNone()) return this;
-    return mapFn(this.value!);
+  flatMap<U extends MaybeLike<any>>(mapFn: (item: T) => U):
+    this extends SomeLike<T> ?
+      U extends SomeLike<any> ? Some<MaybeValue<U>>
+      : U extends None ? None
+      : Maybe<MaybeValue<U>>
+    : this extends NoneLike ? None
+    : Maybe<MaybeValue<U>>
+  {
+    if (this.isNone()) return this as $ANY;
+    return mapFn(this.value!) as $ANY;
   }
 
   /**
@@ -160,9 +187,16 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param mapFn
    * @returns
    */
-  mapNone<U>(mapFn: () => U): Maybe<T | U> {
-    if (this.isNone()) return Maybe.some(mapFn());
-    return this as Maybe<T | U>;
+  mapNone<U>(mapFn: () => U):
+    this extends SomeLike<T> ? Some<T>
+    : this extends NoneLike ?
+      U extends SomeLike<any> ? Some<MaybeValue<U>>
+      : U extends NoneLike ? None
+      : Maybe<U>
+    : Maybe<T | U>
+  {
+    if (this.isNone()) return Maybe.some(mapFn()) as $ANY;
+    return this as $ANY;
   }
 
   /**
@@ -171,9 +205,9 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @param mapFn
    * @returns
    */
-  flatMapNone(mapFn: () => None): Maybe<T>;
-  flatMapNone<U>(mapFn: () => Some<U>): Maybe<T | U>;
-  flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U>;
+  // flatMapNone(mapFn: () => None): Maybe<T>;
+  // flatMapNone<U>(mapFn: () => Some<U>): Maybe<T | U>;
+  // flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U>;
   flatMapNone<U>(mapFn: () => Maybe<U>): Maybe<T | U> {
     if (this.isNone()) return mapFn();
     return this as Maybe<T | U>;
@@ -348,7 +382,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   at<U extends any[], I extends keyof U>(this: MaybeKind<U>, index: I): Maybe<U[I]>
-  at<U>(this: MaybeKind<U[]>, index: number): Maybe<U>
+  at<U>(this: MaybeKind<readonly U[]>, index: number): Maybe<U>
   at<U>(this: MaybeKind<Iterable<U>>, index: number): Maybe<U>
   at(index: number): None
   at<U>(this: MaybeKind<Iterable<U>>, index: number): Maybe<U> {
@@ -474,6 +508,115 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
       throw this.value;
 
     return Maybe.some(this.value as T) as T extends ErrorLike ? None : Maybe<Exclude<T, ErrorLike>>;
+  }
+
+  // /**
+  //  * TODO is this desirable? probably not
+  //  *
+  //  * Split the Maybe into many different values and join in a tuple
+  //  *
+  //  * Similar to Promise.all
+  //  *
+  //  * @param splits
+  //  */
+  // allAny<M extends Record<PropertyKey, Unary<this, unknown>>>(splits: M): Maybe<{ [K in keyof M]: ReturnType<M[K]> }>;
+  // allAny<R1>(...splits: readonly [Unary<this, R1>]): Maybe<[R1]>
+  // allAny<R1, R2>(...splits: readonly [Unary<this, R1>, Unary<this, R2>]): Maybe<[R1, R2]>
+  // allAny<R1, R2, R3>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>]): Maybe<[R1, R2, R3]>
+  // allAny<R1, R2, R3, R4>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>]): Maybe<[R1, R2, R3, R4]>
+  // allAny<R1, R2, R3, R4, R5>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>]): Maybe<[R1, R2, R3, R4, R5]>
+  // allAny<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>]): Maybe<[R1, R2, R3, R4, R5, R6]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>, Unary<this, R14>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
+  // allAny<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<this, R1>, Unary<this, R2>, Unary<this, R3>, Unary<this, R4>, Unary<this, R5>, Unary<this, R6>, Unary<this, R7>, Unary<this, R8>, Unary<this, R9>, Unary<this, R10>, Unary<this, R11>, Unary<this, R12>, Unary<this, R13>, Unary<this, R14>, Unary<this, R15>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
+  // allAny<R>(...splits: readonly (Unary<this, R>)[]): Maybe<R[]>;
+  // allAny(mapOrFunction?: (Unary<this, unknown> | Record<PropertyKey, Unary<this, unknown>>), ...rest: Unary<this, unknown>[]): $ANY {
+  //   if (this.isNone()) return Maybe.none;
+
+  //   if (!mapOrFunction)
+  //     throw new TypeError('[@nkp/maybe::Maybe.all]: you must provide an object or at least one function');
+
+  //   if (typeof mapOrFunction === 'object') {
+  //     const mapping = mapOrFunction as Record<PropertyKey, Unary<this, unknown>>;
+  //     const mappedResults: Record<PropertyKey, $ANY> = {};
+  //     Object.keys(mapping).map(key => {
+  //       mappedResults[key] = mapping[key]!(this);
+  //     });
+  //     return Maybe.some(mappedResults);
+  //   }
+
+  //   const zeroFn = mapOrFunction as Unary<this, unknown>;
+  //   // given an array of functions
+  //   // given an array
+  //   const fns = [zeroFn, ...rest,] as Unary<this, unknown>[];
+  //   return Maybe.some([fns.map(split => split(this)),]);
+  // }
+
+
+
+  /**
+   * Split the Maybe into many different values and join in a tuple
+   *
+   * Similar to Promise.all
+   *
+   * @param splits
+   */
+  all<M extends Record<PropertyKey, Unary<this, MaybeLike<unknown>>>>(splits: M): Maybe<{ [K in keyof M]: MaybeValue<ReturnType<M[K]>> }>;
+  all<R1>(...splits: readonly [Unary<this, MaybeLike<R1>>]): Maybe<[R1]>
+  all<R1, R2>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>]): Maybe<[R1, R2]>
+  all<R1, R2, R3>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>]): Maybe<[R1, R2, R3]>
+  all<R1, R2, R3, R4>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>]): Maybe<[R1, R2, R3, R4]>
+  all<R1, R2, R3, R4, R5>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>]): Maybe<[R1, R2, R3, R4, R5]>
+  all<R1, R2, R3, R4, R5, R6>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>]): Maybe<[R1, R2, R3, R4, R5, R6]>
+  all<R1, R2, R3, R4, R5, R6, R7>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>, Unary<this, MaybeLike<R14>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14]>
+  all<R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15>(...splits: readonly [Unary<this, MaybeLike<R1>>, Unary<this, MaybeLike<R2>>, Unary<this, MaybeLike<R3>>, Unary<this, MaybeLike<R4>>, Unary<this, MaybeLike<R5>>, Unary<this, MaybeLike<R6>>, Unary<this, MaybeLike<R7>>, Unary<this, MaybeLike<R8>>, Unary<this, MaybeLike<R9>>, Unary<this, MaybeLike<R10>>, Unary<this, MaybeLike<R11>>, Unary<this, MaybeLike<R12>>, Unary<this, MaybeLike<R13>>, Unary<this, MaybeLike<R14>>, Unary<this, MaybeLike<R15>>]): Maybe<[R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15]>
+  all<R>(...splits: readonly (Unary<this, R>)[]): Maybe<R[]>;
+  all(mapOrFunction?: (Unary<this, MaybeLike<unknown>> | Record<PropertyKey, Unary<this, MaybeLike<unknown>>>), ...rest: Unary<this, MaybeLike<unknown>>[]): $ANY {
+    if (this.isNone()) return Maybe.none;
+
+    if (!mapOrFunction)
+      throw new TypeError('[@nkp/maybe::Maybe.all]: you must provide an object or at least one function');
+
+    if (typeof mapOrFunction === 'object') {
+      const mapping = mapOrFunction as Record<PropertyKey, Unary<this, MaybeLike<unknown>>>;
+      const mappedResults: Record<PropertyKey, $ANY> = {};
+      const keys = Object.keys(mapping);
+      for (let i = 0; i < keys.length; i += 1) {
+        const key = keys[i]!;
+        const next = mapping[key]!(this);
+        // short circuit on early none
+        if (next.isNone()) return Maybe.none;
+        // use the some value
+        mappedResults[key] = next.value;
+      }
+      return Maybe.some(mappedResults);
+    }
+
+    const zeroFn = mapOrFunction as Unary<this, MaybeLike<unknown>>;
+    // given an array of functions
+    // given an array
+    const fns = [zeroFn, ...rest,] as Unary<this, MaybeLike<unknown>>[];
+    const mappedResults: unknown[] = [];
+    for (let i = 0; i < fns.length; i += 1) {
+      const next = fns[i]!(this);
+      // short circuit on early none
+      if (next.isNone()) return Maybe.none;
+      mappedResults.push(next.value);
+    }
+    return Maybe.some(mappedResults);
   }
 }
 

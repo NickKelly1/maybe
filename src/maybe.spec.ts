@@ -202,15 +202,17 @@ describe('Maybe', () => {
 
     describe('.flatMap(...)', () => {
       it('Some -> Some', () => {
-        const maybe = Maybe.some(5).flatMap(() => Maybe.from('hi'));
-        expect(maybe.isSome()).toBe(true);
-        expect(maybe.value).toBe('hi');
+        const m1: Some<number> = some(5);
+        const m2: Some<string> = m1.flatMap(() => Maybe.some('hi'));
+        expect(m2.isSome()).toBe(true);
+        expect(m2.value).toBe('hi');
       });
 
       it('Some -> None', () => {
-        const maybe = Maybe.some(5).flatMap(() => Maybe.none);
-        expect(maybe.isNone()).toBe(true);
-        expect(maybe.value).toBe(undefined);
+        const m1: Some<number> = some(5);
+        const m2: None = m1.flatMap(() => none);
+        expect(m2.isNone()).toBe(true);
+        expect(m2.value).toBe(undefined);
       });
 
       it('Some -> Maybe', () => {
@@ -221,11 +223,18 @@ describe('Maybe', () => {
         function maybeNone<T>(val: T): Maybe<T> {
           return Maybe.none;
         }
-        const root = Maybe.some(5);
-        const som = root.flatMap(maybeSome);
-        const non = root.flatMap(maybeNone);
+        const root: Some<number> = Maybe.some(5);
+        const som: Maybe<number> = root.flatMap(maybeSome);
+        const non: Maybe<number> = root.flatMap(maybeNone);
         expect(som.isSome()).toBe(true);
         expect(non.isNone()).toBe(true);
+      });
+
+      it('None -> None', () => {
+        const m1: None = none;
+        const m2: None = m1.flatMap(() => some(5));
+        expect(m2.isNone()).toBe(true);
+        expect(m2.value).toBe(undefined);
       });
     });
 
@@ -371,6 +380,52 @@ describe('Maybe', () => {
       it('None -> None', () => {
         const m1: Maybe<string | null> = Maybe.none;
         const m2: Maybe<string> = m1.notNull();
+        expect(m2.isSome()).toBe(false);
+      });
+    });
+
+    describe('.compact(...)', () => {
+      it('Some -> Some (1)', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some('hi there');
+        const m2: Maybe<string> = m1.compact();
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe('hi there');
+      });
+
+      it('Some -> Some (2)', () => {
+        const m1: Maybe<string | number | null | undefined> = Maybe.some(1);
+        const m2: Maybe<string | number> = m1.compact();
+        expect(m2.isSome()).toBe(true);
+        expect(m2.unwrap()).toBe(1);
+      });
+
+      it('Some -> None (1)', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some(null);
+        const m2: Maybe<string> = m1.compact();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('Some -> None (2)', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.some(undefined);
+        const m2: Maybe<string> = m1.compact();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('Some -> None (3)', () => {
+        const m1: Maybe<string | boolean | null | undefined> = Maybe.some(false);
+        const m2: Maybe<string | boolean> = m1.compact();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('Some -> None (4)', () => {
+        const m1: Maybe<string | number | null | undefined> = Maybe.some(0);
+        const m2: Maybe<string | number> = m1.compact();
+        expect(m2.isSome()).toBe(false);
+      });
+
+      it('None -> None', () => {
+        const m1: Maybe<string | null | undefined> = Maybe.none;
+        const m2: Maybe<string> = m1.compact();
         expect(m2.isSome()).toBe(false);
       });
     });
@@ -709,7 +764,8 @@ describe('Maybe', () => {
 
       describe('[tuple]', () => {
         it('forward index', () => {
-          const m1: Maybe<[number, string, boolean]> = Maybe.some([1, '2', false,]);
+          type Tuple = [number, string, boolean];
+          const m1: Maybe<Tuple> = Maybe.some<Tuple>([1, '2', false,]);
 
           const r1: Maybe<number> = m1.at(0);
           expect(r1.isSome()).toBe(true);
@@ -728,7 +784,8 @@ describe('Maybe', () => {
         });
 
         it('reverse index', () => {
-          const m1: Maybe<[number, string, boolean]> = Maybe.some([1, '2', false,]);
+          type Tuple = [number, string, boolean];
+          const m1: Maybe<Tuple> = Maybe.some<Tuple>([1, '2', false,]);
 
           const r1: Maybe<string | number | boolean> = m1.at(-1);
           expect(r1.isSome()).toBe(true);
@@ -943,6 +1000,145 @@ describe('Maybe', () => {
         const some: Maybe<number | ErrorLike> = Maybe.none;
         const survived: Maybe<number> = some.throwErrorLike();
         expect(survived.isNone()).toEqual(true);
+      });
+    });
+
+    describe('.all(...)', () => {
+      describe('Some', () => {
+        describe('object', () => {
+          it('should collapse to Some', () => {
+            const number = some(5);
+            const numbers: Maybe<{
+              original: number,
+              plus1: number,
+              minus1: number,
+              power2: number,
+              isEven: boolean,
+              string: string,
+              array: number[],
+            }> = number.all({
+              original: (self) => self,
+              plus1: (self) => self.map(n => n + 1),
+              minus1: (self) => self.map(n => n - 1),
+              power2: (self) => self.map(n => n ** 2),
+              isEven: (self) => self.map(n => !(n % 2)),
+              string: (self) => self.map(String),
+              array: (self) => self.map((n) => [n,]),
+            });
+
+            expect(numbers.isSome()).toEqual(true);
+            expect(numbers.value!.original).toEqual(5);
+            expect(numbers.value!.plus1).toEqual(6);
+            expect(numbers.value!.minus1).toEqual(4);
+            expect(numbers.value!.power2).toEqual(25);
+            expect(numbers.value!.isEven).toEqual(false);
+            expect(numbers.value!.string).toEqual('5');
+            expect(numbers.value!.array).toEqual([5,]);
+          });
+
+          it('should to None', () => {
+            const number = some(5);
+            const numbers: Maybe<{
+              original: number,
+              plus1: number,
+              minus1: number,
+              power2: number,
+              isEven: boolean,
+              string: string,
+              array: number[],
+            }> = number.all({
+              original: (self) => self,
+              plus1: (self) => self.map(n => n + 1),
+              minus1: (self) => self.map(n => n - 1),
+              power2: (self) => self.map(n => n ** 2),
+              isEven: (self) => self.map(n => !(n % 2)),
+              string: (self) => Maybe.none,
+              array: (self) => self.map((n) => [n,]),
+            });
+
+            expect(numbers.isNone()).toEqual(true);
+          });
+        });
+
+        describe('variadic', () => {
+          it('should collapse to Some', () => {
+            const number = some(5);
+            const numbers: Maybe<[
+              original: number,
+              plus1: number,
+              minus1: number,
+              power2: number,
+              isEven: boolean,
+              string: string,
+              array: number[],
+            ]> = number.all(
+              (self) => self,
+              (self) => self.map(n => n + 1),
+              (self) => self.map(n => n - 1),
+              (self) => self.map(n => n ** 2),
+              (self) => self.map(n => !(n % 2)),
+              (self) => self.map(String),
+              (self) => self.map((n) => [n,]),
+            );
+
+            expect(numbers.isSome()).toEqual(true);
+            expect(numbers.value![0]).toEqual(5);
+            expect(numbers.value![1]).toEqual(6);
+            expect(numbers.value![2]).toEqual(4);
+            expect(numbers.value![3]).toEqual(25);
+            expect(numbers.value![4]).toEqual(false);
+            expect(numbers.value![5]).toEqual('5');
+            expect(numbers.value![6]).toEqual([5,]);
+          });
+
+          it('should to None', () => {
+            const number = some(5);
+            const numbers: Maybe<[
+              original: number,
+              plus1: number,
+              minus1: number,
+              power2: number,
+              isEven: boolean,
+              string: string,
+              array: number[],
+            ]> = number.all(
+              (self) => self,
+              (self) => self.map(n => n + 1),
+              (self) => self.map(n => n - 1),
+              (self) => self.map(n => n ** 2),
+              (self) => self.map(n => !!(n % 2)),
+              (self) => self.map(String),
+              (self) => Maybe.none,
+            );
+
+            expect(numbers.isNone()).toEqual(true);
+          });
+        });
+      });
+
+      describe('None', () => {
+        it('should work', () => {
+          const number = Maybe.none;
+          const numbers: Maybe<[
+              original: number,
+              plus1: number,
+              minus1: number,
+              power2: number,
+              isEven: boolean,
+              string: string,
+              array: number[],
+            ]> = number.all(
+              (self) => self,
+              (self) => self.map(n => n + 1),
+              (self) => self.map(n => n - 1),
+              (self) => self.map(n => n ** 2),
+              (self) => self.map(n => !(n % 2)),
+              (self) => self.map(String),
+              (self) => self.map((n) => [n,]),
+            );
+
+          expect(numbers.isNone()).toEqual(true);
+        });
       });
     });
   });

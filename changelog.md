@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.28 - 2021-09-06
+
+### Added
+
+- Added `all`
+- Added `compact`
+
+### Changed
+
+- Loosened typing on `flatMap` and `flatMapNone`
+- Renamed changelog.md to CHANGELOG.md
+
 ## 0.0.27 - 2021-09-05
 
 ### Added
