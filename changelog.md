@@ -11,6 +11,7 @@
 
 - Loosened typing on `flatMap` and `flatMapNone`
 - Renamed changelog.md to CHANGELOG.md
+- Fixed dependency issue
 
 ## 0.0.27 - 2021-09-05
 
