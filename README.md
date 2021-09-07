@@ -1035,7 +1035,7 @@ some('merry christmas').repeat(1); // Some ['merry christmas']
 some(':)').repeat(5); // Some [':):):):):)']
 ```
 
-### Replace
+### replace
 
 Replace part of a string.
 
@@ -1047,7 +1047,8 @@ Similar to `String.prototype.replace`.
 interface Maybe<T> {
   replace(
     this: MaybeLike<string>,
-    searchValue: RegExp | string, replaceValue: string
+    searchValue: RegExp | string,
+    replaceValue: string
   ): Maybe<string>
 }
 ```
@@ -1059,6 +1060,33 @@ import { some } from '@nkp/maybe';
 
 some("Let's eat, Grandma!").replace(/,/, '')
 // Some ['Let's eat Grandma!']
+```
+
+### replaceAll
+
+Replace matched parts of a string.
+
+Similar to `String.prototype.replaceAll`.
+
+```ts
+// signature
+
+interface Maybe<T> {
+  replaceAll(
+    this: MaybeLike<string>,
+    searchValue: RegExp | string,
+    replaceValue: string
+  ): Maybe<string>
+}
+```
+
+```ts
+// usage
+
+import { some } from '@nkp/maybe';
+
+some("I love cooking, my family, and my dog").replaceAll(/,/, '')
+// Some ['I love cooking my family and my dog']
 ```
 
 ### slice
