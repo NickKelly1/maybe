@@ -4,7 +4,7 @@
 [![Node.js Package](https://github.com/NickKelly1/maybe/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/maybe/actions/workflows/release.yml)
 ![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/maybe/badge.svg)
 
-JavaScript utilities for working with values that may not exist.
+NPM package with utilities for working with values that may not exist.
 
 `Maybe<T>` wraps a value that is either `T` or does not exist. `Maybe's` type signature is `Maybe<T> = Some<T> | None`.
 

@@ -1,8 +1,8 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.33",
-  "description": "Maybe<T> is a value that may either be T or not exist. Also known as an \"Option\".",
+  "version": "0.0.34",
+  "description": "Utilities for working with values that may not exist.",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
   "author": "Nick Kelly",
