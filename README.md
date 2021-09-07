@@ -57,7 +57,7 @@ JavaScript utilities for working with values that may not exist.
     - [pluck](#pluck)
     - [repeat](#repeat)
     - [replace](#replace)
-    - [replaceAll](#replaceAll)
+    - [replaceAll](#replaceall)
     - [slice](#slice)
     - [string](#string)
     - [tap](#tap)
