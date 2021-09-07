@@ -1,7 +1,7 @@
 {
   "name": "@nkp/maybe",
   "sideEffects": false,
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "Utilities for working with values that may not exist.",
   "main": "es/index.js",
   "module": "cjs/index.es.js",
