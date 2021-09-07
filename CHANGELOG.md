@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.34 - 2021-09-06
+
+### Added
+
+- `replaceAll`
+
+### Changed
+
+- Updated readme.md
+
 ## 0.0.33 - 2021-09-06
 
 ### Added

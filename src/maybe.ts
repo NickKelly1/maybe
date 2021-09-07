@@ -639,6 +639,43 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.some(replaced) as $ANY;
   }
 
+
+  /**
+   * Replace the string using the expression
+   *
+   * @param this
+   * @param searchValue
+   * @param replaceValue
+   */
+  replaceAll(this: MaybeLike<string>, searchValue: RegExp | string, replaceValue: string):
+    this extends SomeLike<string> ? Some<string>
+    : this extends NoneLike ? None
+    : Maybe<string>
+  {
+    if (this.isNone()) return Maybe.none as $ANY;
+    if (typeof searchValue === 'string') {
+      const replaced = this
+        .value
+        .replace(
+          new RegExp(searchValue, 'g'),
+          replaceValue
+        );
+      return Maybe.some(replaced) as $ANY;
+    }
+    const replaced = this
+      .value
+      .replace(
+        new RegExp(
+          searchValue,
+          searchValue.flags.includes('g')
+            ? searchValue.flags
+            : searchValue.flags + 'g'
+        ),
+        replaceValue,
+      );
+    return Maybe.some(replaced) as $ANY;
+  }
+
   /**
    * Coerce the value to a string
    *

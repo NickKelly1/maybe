@@ -57,7 +57,9 @@ JavaScript utilities for working with values that may not exist.
     - [pluck](#pluck)
     - [repeat](#repeat)
     - [replace](#replace)
+    - [replaceAll](#replaceAll)
     - [slice](#slice)
+    - [string](#string)
     - [tap](#tap)
     - [tapBoth](#tapboth)
     - [tapNone](#tapnone)
@@ -441,7 +443,7 @@ const hex: Maybe<string> = Maybe.from('#ffaa33');
 const parsed: Maybe<number | null> = maybe.flatBimap(
   // value was provided but may be invalid
   // if invalid, turn into None
-  (string) => some(string).replace(/^#/. '').parseint(16),
+  (string) => some(string).replace(/^#/, '').parseInt(16),
   // no value provided, set a default
   () => some('aabbcc').parseInt(16),
 );
@@ -1059,11 +1061,31 @@ some("Let's eat, Grandma!").replace(/,/, '')
 // Some ['Let's eat Grandma!']
 ```
 
-### Slice
+### slice
 
 Extract a subsection of the array or string.
 
 Similar to `String.prototype.slice` and `Array.prototype.slice`
+
+```ts
+// signature
+
+import { IHasSlice } from '@nkp/iterable';
+
+interface Maybe<T> {
+  slice(
+    this: MaybeLike<IHasSlice>,
+    start?: number,
+    end?: number
+  ): Maybe<T>;
+}
+```
+
+### string
+
+Coerce the `Some` value into a string.
+
+If coersion throws, maps into a `None`.
 
 ```ts
 // signature
