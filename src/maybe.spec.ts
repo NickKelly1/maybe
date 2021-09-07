@@ -1363,7 +1363,7 @@ describe('Maybe', () => {
         it('Some [\'1\'] -> Some[1]', () => {
           const m1 = some('1').notNaN();
           expect(m1.isSome()).toEqual(true);
-          expect(m1.value).toEqual(1);
+          expect(m1.value).toEqual('1');
         });
         it('Some [\'not a number\'] -> None', () => {
           const m1 = some('not a number').notNaN();
@@ -1396,7 +1396,7 @@ describe('Maybe', () => {
         it('Some [\'1\'] -> Some[1]', () => {
           const m1 = some('1').finite();
           expect(m1.isSome()).toEqual(true);
-          expect(m1.value).toEqual(1);
+          expect(m1.value).toEqual('1');
         });
         it('Some [\'not a number\'] -> None', () => {
           const m1 = some('not a number').finite();
