@@ -1233,6 +1233,45 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   }
 
   /**
+   * Split and transform the `Maybe<T>`
+   * return the first `Some<U>` (or non `MaybeLike`)
+   *
+   * Occasionally need help inferring the type
+   *
+   * @example
+   * ```ts
+   * Maybe.from('rgba(12, 13, 325, 0.5)').race((self) => [
+   *  // match rgb
+   *  () => self.match(/^rgb\((.*)/)$/i),
+   *  // match rgba
+   *  () => self.match(/^rgba\((.*)/)$/i),
+   * ]);
+   *
+   * // type error
+   * Maybe.from(5).race((self) => [Maybe.none, 5])
+   *
+   * // no error
+   * Maybe.from(5).race<number>((self) => [Maybe.none, 5])
+   * ```
+   *
+   * similar to {@link Promise.race}
+   *
+   * @param maybeables
+   *
+   * @returns
+   */
+  race<U>(maybeables: Unary<this, Maybeable<U>[]>): Maybe<U> {
+    if (this.isNone()) return none;
+    const _maybeables: Maybeable<U>[] = maybeables(this);
+    const length = _maybeables.length;
+    for (let i = 0; i < length; i += 1) {
+      const next = unwrapMaybeable(_maybeables[i]!);
+      if (next.isSome()) return this._compatible(next);
+    }
+    return none;
+  }
+
+  /**
    * Split the Maybe into many different values and join in a tuple
    *
    * Similar to Promise.all
@@ -1288,10 +1327,11 @@ export type MaybeLike<T> = SomeLike<T> | NoneLike;
 
 // unwrapping tuple types: https://instil.co/blog/crazy-powerful-typescript-tuple-types/
 
-export type Maybeable =
-  | unknown
-  | MaybeLike<unknown>
-  | (() => (unknown | Maybe<unknown>));
+export type Maybeable<T = unknown> =
+  | (() => (MaybeLike<T> | T))
+  | MaybeLike<T>
+  | T
+;
 
 // unwrapping maybeables:
 //  1. if the value is a fucntion:
@@ -1450,9 +1490,11 @@ export const some = Maybe.some;
  * @param maybeable
  * @returns
  */
-function unwrapMaybeable(maybeable: Maybeable): MaybeLike<unknown> {
+function unwrapMaybeable<T>(maybeable: Maybeable<T>): MaybeLike<T> {
   // will either be a maybe or a value
-  const perhaps = typeof maybeable === 'function' ? maybeable() : maybeable;
+  const perhaps = typeof maybeable === 'function'
+    ? (maybeable as () => T | MaybeLike<T>)()
+    : maybeable;
   if (isMaybeLike(perhaps)) { return perhaps; }
   return Maybe.some(perhaps);
 }

@@ -1300,6 +1300,58 @@ describe('Maybe', () => {
       });
     });
 
+    describe('.race(...)', () => {
+      describe('Some', () => {
+        it('should collapse to Some', () => {
+          const number: Maybe<number> = some(5) as Maybe<number>;
+
+          const numbers: Maybe<number> = number.race((self) => [
+            none,
+            () => none,
+            () => 17,
+            () => self,
+            14,
+            some(15),
+          ]);
+
+          expect(numbers.isSome()).toEqual(true);
+          expect(numbers.value).toEqual(17);
+        });
+
+        describe('should collapse to None', () => {
+          it('on Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+            const numbers = number.race<string>((self) => [ none, ]);
+            expect(numbers.isNone()).toEqual(true);
+          });
+
+          it('on () => Maybe.none', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+            const numbers = number.race<string>((self) => [ () => none, ]);
+            expect(numbers.isNone()).toEqual(true);
+          });
+
+          it('on empty', () => {
+            const number: Maybe<number> = some(5) as Maybe<number>;
+            const numbers = number.race((self) => []);
+            expect(numbers.isNone()).toEqual(true);
+          });
+        });
+      });
+
+      describe('None', () => {
+        it('should work', () => {
+          const number: None = none as None;
+
+          const numbers: Maybe<number> = number.race((self) => [
+            () => Maybe.from(5),
+          ]);
+
+          expect(numbers.isNone()).toEqual(true);
+        });
+      });
+    });
+
     describe('parseInt', () => {
       describe('should work', () => {
         it('Some [17] -> Some [17]', () => {
