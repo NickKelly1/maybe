@@ -369,16 +369,16 @@ const some = Maybe
 
 #### finite
 
-Conver the value to a number.
+Check if the value as a number is finite.
 
-- if the number is finite returns `Some<number>`
+- if the number is finite returns `Some<T>`
 - if the number is not finite, including `Number.NaN`, returns `None`
 
 ```ts
 // signature
 
 interface Maybe<T> {
-  finite(): Maybe<number>;
+  finite(): Maybe<T>;
 }
 ```
 
@@ -840,16 +840,16 @@ some.notMatch(/\.js$/); // Some ['style.css']
 
 #### notNaN
 
-Conver the value to a number.
+Check if the value as a number is finite.
 
+- if the number is not `Number.NaN`, including `Number.POSITIVE_INFINITY` and `Number.NEGATIVE_INFINITY`, returns `Some<T>`
 - if the number is `Number.NaN` returns `None`
-- if the number is not `Number.NaN`, including `Number.POSITIVE_INFINITY` and `Number.NEGATIVE_INFINITY`, returns `Some<number>`
 
 ```ts
 // signature
 
 interface Maybe<T> {
-  notNaN(): Maybe<number>;
+  notNaN(): Maybe<T>;
 }
 ```
 

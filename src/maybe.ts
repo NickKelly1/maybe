@@ -50,19 +50,21 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     //
   }
 
+
   /**
    * Ensure the instance is compatible with this version of the library
    *
    * @param like
    * @returns
    */
-  protected _compatible<T>(like: MaybeLike<T>): Maybe<T> {
+  protected _compatible<U>(like: MaybeLike<U>): Maybe<U> {
     if (this.version === (like as any).version) {
-      return like as Maybe<T>;
+      return like as Maybe<U>;
     }
     if (like.isSome()) return some(like.value);
     return none;
   }
+
 
   protected _arr: undefined | unknown[];
   protected _cachedArray(): undefined | unknown[] {
@@ -80,6 +82,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return undefined;
   }
 
+
   /**
    * Map both sides of the value to a new Some
    *
@@ -91,6 +94,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     if (this.isNone()) return this._compatible(some(onNone()));
     return Maybe.some(onSome(this.value!));
   }
+
 
   /**
    * Map both sides of the value to a new Some
@@ -107,6 +111,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this._compatible(onSome(this.value!));
   }
 
+
   /**
    * Remove falsy values
    *
@@ -114,10 +119,11 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   compact(): Maybe<NonNullable<T>> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     if (!this.value) return Maybe.none;
     return Maybe.some(this.value) as Maybe<NonNullable<T>>;
   }
+
 
   /**
    * Map the value
@@ -126,9 +132,10 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   map<U>(callbackfn: (value: T) => U): Maybe<U> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     return Maybe.some(callbackfn(this.value!));
   }
+
 
   /**
    * Map this instance to another value and return that value
@@ -139,6 +146,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   mapSelf<R>(callbackfn: (self: this) => R): R {
     return callbackfn(this);
   }
+
 
   /**
    * Map the value
@@ -151,6 +159,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this;
   }
 
+
   /**
    * Map the value
    *
@@ -162,6 +171,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this;
   }
 
+
   /**
    * Map the value
    *
@@ -172,6 +182,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     callbackfn(this);
     return this;
   }
+
 
   /**
    * Map both sides of the value to a new Some
@@ -186,46 +197,48 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this;
   }
 
+
   /**
    * Flatten the maybe
    *
    * @param mapFn
    * @returns
    */
-  flat<U>(this: Some<Some<U>>): Some<U>
-  flat<U>(this: Maybe<Some<U>>): Maybe<U>
-  flat<U>(this: Some<Maybe<U>>): Maybe<U>
-  flat<U>(this: Maybe<Maybe<U>>): Maybe<U>
-  flat(this: Maybe<None>): None
-  flat(this: None): None
-  flat(): T extends Maybe<Maybe<infer U>> ? Maybe<U> : Maybe<T> {
-    if (this.isNone()) return Maybe.none;
-    const value = this.unwrap();
+  flat<U>(this: SomeLike<SomeLike<U>>): Some<U>
+  flat<U>(this: MaybeLike<SomeLike<U>>): Maybe<U>
+  flat<U>(this: SomeLike<MaybeLike<U>>): Maybe<U>
+  flat<U>(this: MaybeLike<MaybeLike<U>>): Maybe<U>
+  flat(this: MaybeLike<NoneLike>): None
+  flat(this: NoneLike): None
+  flat(): T extends MaybeLike<MaybeLike<infer U>> ? Maybe<U> : Maybe<T> {
+    if (this.isNone()) return none;
+    const value = this.value as T;
 
     // value is not a Maybe<U>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!value) return this as unknown as any;
+    if (!value) return this._compatible(this as unknown as any);
 
     // value is not a Maybe<U>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!(typeof value === 'object')) return this as unknown as any;
+    if (!(typeof value === 'object')) return this._compatible(this as unknown as any);
 
     // value is not a Maybe<U>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!('tag' in value)) return this as unknown as any;
+    if (!('tag' in value)) return this._compatible(this as unknown as any);
 
     // value is a None<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((value as any).tag === NONE) return value as unknown as any;
+    if ((value as any).tag === NONE) return this._compatible(value as unknown as any);
 
     // value is a Some<T>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((value as any).tag === SOME) return value as unknown as any;
+    if ((value as any).tag === SOME) return this._compatible(value as unknown as any);
 
     // value is unknown
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this as unknown as any;
+    return this._compatible(this as unknown as any);
   }
+
 
   /**
    * Flat map the value
@@ -245,13 +258,14 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this._compatible(callbackfn(this.value!)) as $ANY;
   }
 
+
   /**
    * Map the none side of this option
    *
    * @param callbackfn
    * @returns
    */
-  flatMapNone<U extends MaybeLike<any>>(callbackfn: () => Maybe<U>):
+  flatMapNone<U extends MaybeLike<any>>(callbackfn: () => U):
     this extends SomeLike<T>
       ? Some<T>
     : this extends NoneLike
@@ -265,6 +279,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     if (this.isNone()) return Maybe.none as $ANY;
     return this._compatible(callbackfn()) as $ANY;
   }
+
 
   /**
    * Map the none side of this option
@@ -281,6 +296,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this as $ANY;
   }
 
+
   /**
    * Filter in items matching
    *
@@ -288,10 +304,45 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   filter(filterFn: (item: T) => boolean): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     if (filterFn(this.value!)) return this as Maybe<T>;
     return Maybe.none;
   }
+
+
+  /**
+   * Coerce the value to a number
+   *
+   * Constrain the minimum value
+   *
+   * Uses {@link Math.min}
+   *
+   * @param least
+   * @returns
+   */
+  min(least: number): Maybe<number> {
+    if (this.isNone()) return none;
+    const num = Number(this.value);
+    return some(Math.min(num, least));
+  }
+
+
+  /**
+   * Coerce the value to a number
+   *
+   * Constrain the maximum value
+   *
+   * Uses {@link Math.max}
+   *
+   * @param most
+   * @returns
+   */
+  max(most: number): Maybe<number> {
+    if (this.isNone()) return none;
+    const num = Number(this.value);
+    return some(Math.max(num, most));
+  }
+
 
   /**
    * Filter in items greater than the given value
@@ -300,9 +351,10 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   gt(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     return this.filter((i) => Number(i) > Number(gt));
   }
+
 
   /**
    * Filter in items greater than the given value
@@ -311,9 +363,10 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   gte(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     return this.filter((i) => Number(i) >= Number(gt));
   }
+
 
   /**
    * Filter in items greater than the given value
@@ -322,9 +375,10 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   lt(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     return this.filter((i) => Number(i) < Number(gt));
   }
+
 
   /**
    * Filter in items greater than the given value
@@ -333,35 +387,306 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   lte(gt: Date | number | BigInt): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     return this.filter((i) => Number(i) <= Number(gt));
   }
 
 
   /**
-   * Convert to a number
+   * Coerce the value to a string and trim it
    *
-   * If NaN, return None
+   * Uses {@link String.prototype.trim}
    */
-  notNaN(): Maybe<number> {
-    if (this.isNone()) return Maybe.none;
-    const number = Number(this.value);
-    if (Number.isNaN(number)) return Maybe.none;
-    return Maybe.some(number);
+  trim(): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).trim());
+  }
+
+
+  /**
+   * Coerce the value to a string and trim the start of it
+   *
+   * Uses {@link String.prototype.trimStart}
+   */
+  trimStart(): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).trimStart());
+  }
+
+
+  /**
+   * Coerce the value to a string and trim the end of it
+   *
+   * Uses {@link String.prototype.trimEnd}
+   */
+  trimEnd(): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).trimEnd());
+  }
+
+
+  /**
+   * Does the value have the property?
+   *
+   * Property may be anywhere in inheritance heirarchy
+   *
+   * Uses {@link Reflect.has}
+   */
+  has(key: PropertyKey): Maybe<boolean> {
+    if (this.isNone()) return none;
+    if (this.value == null) return none;
+    if (typeof this.value !== 'object') return none;
+    return Maybe.fromTruthy(Reflect.has(this.value as Record<string, unknown>, key));
   }
 
   /**
-   * Convert to a number
+   * Does the value have the property on itself?
    *
-   * If not finite, return None
+   * Only checks the object itself
    *
+   * Uses {@link Object.prototype.hasOwnProperty}
    */
-  finite(): Maybe<number> {
-    if (this.isNone()) return Maybe.none;
+  hasOwn(key: PropertyKey): Maybe<boolean> {
+    if (this.isNone()) return none;
+    if (this.isNone()) return none;
+    if (this.value == null) return none;
+    if (typeof this.value !== 'object') return none;
+    return Maybe.fromTruthy(Object
+      .prototype
+      .hasOwnProperty
+      .call(this.value as unknown, key));
+  }
+
+
+  /**
+   * Coerce the value to a stirng and transform it to lower-case
+   *
+   * Uses {@link String.prototype.toLowerCase}
+   *
+   * @returns
+   */
+  lc(): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).toLowerCase());
+  }
+
+
+  /**
+   * Coerce the value to a stirng and transform it to upper-case
+   *
+   * Uses {@link String.prototype.toUpperCase}
+   *
+   * @returns
+   */
+  uc(): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).toUpperCase());
+  }
+
+
+  /**
+   * Coerce the value to a string and ensure it ends with the target
+   *
+   * Uses {@link String.prototype.endsWith}
+   *
+   * @param target
+   * @param options
+   * @returns
+   */
+  endWith(target: string, options?: { caseInsensitive?: boolean }): Maybe<string> {
+    if (this.isNone()) return none;
+    const caseInsensitive = options?.caseInsensitive ?? false;
+    const valueStr = String(this.value);
+    if (caseInsensitive) {
+      if (valueStr.toLowerCase().endsWith(target.toLowerCase())) {
+        return some(valueStr.slice(valueStr.length - target.length) + target);
+      }
+      return some(valueStr);
+    }
+    if (valueStr.endsWith(target)) {
+      return some(valueStr.slice(valueStr.length - target.length) + target);
+    }
+    return some(valueStr);
+  }
+
+
+  /**
+   * Coerce the value to a string and ensure it doesn't end with the target
+   *
+   * Uses {@link String.prototype.endsWith}
+   *
+   * @param target
+   * @param options
+   * @returns
+   */
+  dontEndWith(target: string, options?: { caseInsensitive?: boolean }): Maybe<string> {
+    if (this.isNone()) return none;
+    const caseInsensitive = options?.caseInsensitive ?? false;
+    const valueStr = String(this.value);
+    if (caseInsensitive) {
+      if (valueStr.toLowerCase().endsWith(target.toLowerCase())) {
+        return some(valueStr.slice(valueStr.length - target.length));
+      }
+      return some(valueStr);
+    }
+    if (valueStr.endsWith(target)) {
+      return some(valueStr.slice(valueStr.length - target.length));
+    }
+    return some(valueStr);
+  }
+
+
+  /**
+   * Coerce the value to a string and ensure it starts with the target
+   *
+   * Uses {@link String.prototype.startsWith}
+   *
+   * @param target
+   * @param options
+   * @returns
+   */
+  startWith(target: string, options?: { caseInsensitive?: boolean }): Maybe<string> {
+    if (this.isNone()) return none;
+    const caseInsensitive = options?.caseInsensitive ?? false;
+    const valueStr = String(this.value);
+    if (caseInsensitive) {
+      if (valueStr.toLowerCase().startsWith(target.toLowerCase())) {
+        return some(target + valueStr.slice(target.length));
+      }
+      return some(valueStr);
+    }
+    if (valueStr.endsWith(target)) {
+      return some(target + valueStr.slice(target.length) + target);
+    }
+    return some(valueStr);
+  }
+
+
+  /**
+   * Coerce the value to a string and ensure it doesn't start with the target
+   *
+   * Uses {@link String.prototype.startsWith}
+   *
+   * @param target
+   * @param options
+   * @returns
+   */
+  dontStartWith(target: string, options?: { caseInsensitive?: boolean }): Maybe<string> {
+    if (this.isNone()) return none;
+    const caseInsensitive = options?.caseInsensitive ?? false;
+    const valueStr = String(this.value);
+    if (caseInsensitive) {
+      if (valueStr.toLowerCase().startsWith(target.toLowerCase())) {
+        return some(target + valueStr.slice(target.length));
+      }
+      return some(valueStr);
+    }
+    if (valueStr.endsWith(target)) {
+      return some(target + valueStr.slice(target.length) + target);
+    }
+    return some(valueStr);
+  }
+
+
+  /**
+   * Coerce the value to a number and find its absolute value
+   *
+   * Uses {@link Math.abs}
+   */
+  abs(): Maybe<number> {
+    if (this.isNone()) return none;
+    return some(Math.abs(Number(this.value)));
+  }
+
+
+  /**
+   * Coerce the value to a number and round it
+   *
+   * Uses {@link Math.round}
+   */
+  round(): Maybe<number> {
+    if (this.isNone()) return none;
+    return some(Math.round(Number(this.value)));
+  }
+
+
+  /**
+   * Coerce the value to a number and {@link Math.floor} it
+   *
+   * Uses {@link Math.floor}
+   *
+   * @returns
+   */
+  floor(): Maybe<number> {
+    if (this.isNone()) return none;
+    return some(Math.floor(Number(this.value)));
+  }
+
+
+  /**
+   * Coerce the value to a number and {@link Math.ceil} it
+   *
+   * Uses {@link Math.ceil}
+   *
+   * @returns
+   */
+  ceil(): Maybe<number> {
+    if (this.isNone()) return none;
+    return some(Math.ceil(Number(this.value)));
+  }
+
+
+  /**
+   * Coerce the value to a number {@link Number.prototype.toFixed} it
+   *
+   * uses {@link Number.prototype.toFixed}
+   *
+   * @param {fractionDigits}
+   *
+   * @returns
+   */
+  toFixed(fractionDigits?: number | undefined): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(Number(this.value).toFixed(fractionDigits));
+  }
+
+
+  /**
+   * Coerce the value to a number {@link Number.prototype.toPRecision} it
+   *
+   * uses {@link Number.prototype.toPrecision}
+   *
+   * @param {precision}
+   *
+   * @returns
+   */
+  toPrecision(precision?: number | undefined): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(Number(this.value).toPrecision(precision));
+  }
+
+
+  /**
+   * If number coercion is nan, return None
+   */
+  notNaN(): Maybe<T> {
+    if (this.isNone()) return none;
+    const number = Number(this.value);
+    if (Number.isNaN(number)) return Maybe.none;
+    return this._compatible(this as MaybeLike<T>);
+  }
+
+
+  /**
+   * If number coercion is not finite, return None
+   */
+  finite(): Maybe<T> {
+    if (this.isNone()) return none;
     const number = Number(this.value);
     if (!Number.isFinite(number)) return Maybe.none;
-    return Maybe.some(number);
+    return this._compatible(this as MaybeLike<T>);
   }
+
 
   /**
    * Exclude items that test positive
@@ -370,7 +695,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   notMatching(regexp: RegExp): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     const _regexp = typeof regexp === 'string'
       ? new RegExp(regexp)
       : regexp;
@@ -379,6 +704,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     }
     return Maybe.none;
   }
+
 
   /**
    * Keep values that are not undefined
@@ -394,6 +720,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.none;
   }
 
+
   /**
    * Keep values that are not null
    *
@@ -408,10 +735,22 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.none;
   }
 
+
   /**
    * Keep values that are not null or undefined
    *
-   * @param this
+   * @alias nonNullable {@link nonNullable}
+   *
+   * @returns
+   */
+  defined(): Maybe<NonNullable<T>> {
+    return this.notNullable();
+  }
+
+
+  /**
+   * Keep values that are not null or undefined
+   *
    * @returns
    */
   notNullable(): Maybe<NonNullable<T>> {
@@ -422,6 +761,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.none;
   }
 
+
   /**
    * Filter out the specific value
    *
@@ -431,6 +771,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this.filter((item) => item !== value);
   }
 
+
   /**
    * Keep items that test positive
    *
@@ -438,7 +779,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   matching(regexp: RegExp | string): Maybe<T> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     const _regexp = typeof regexp === 'string'
       ? new RegExp(regexp)
       : regexp;
@@ -448,6 +789,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.none;
   }
 
+
   /**
    * Match
    *
@@ -455,11 +797,12 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   match(regexp: RegExp | string): Maybe<RegExpMatchArray> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     const result = String(this.value).match(regexp);
     if (!result) return Maybe.none;
     return Maybe.some(result);
   }
+
 
   /**
    * Match All
@@ -468,13 +811,14 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
    * @returns
    */
   matchAll(regexp: RegExp | string): Maybe<RegExpMatchArray[]> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     const _regexp: RegExp = typeof regexp === 'string'
       ? new RegExp(regexp, 'g')
       : regexp;
     const result = String(this.value).matchAll(_regexp);
     return some(Array.from(result));
   }
+
 
   /**
    * Get the value at the given array index
@@ -519,14 +863,17 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.some(arr[arr.length + index]!);
   }
 
+
   /**
    * Pluck a value from the object
    *
    * @param key
    * @returns
+   *
+   * TODO: fix None typing issues
    */
   pluck<K extends keyof T>(key: K): Maybe<T[K]> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     if (!this.value) return Maybe.none;
     if (key in this.value) return Maybe.some(this.value[key]);
     return Maybe.none;
@@ -543,6 +890,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this.value!;
   }
 
+
   /**
    * Is this a some?
    *
@@ -552,6 +900,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return this.tag === SOME;
   }
 
+
   /**
    * Is this a none?
    *
@@ -560,6 +909,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
   isNone(): this is None {
     return this.tag === NONE;
   }
+
 
   /**
    * Throw if Some
@@ -574,6 +924,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     throw this.value;
   }
 
+
   /**
    * Throw if Some
    *
@@ -585,6 +936,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     if (this.isNone()) return none;
     throw this.value;
   }
+
 
   /**
    * Slice the contents
@@ -604,6 +956,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.some(sliced as any as T) as $ANY;
   }
 
+
   /**
    * Repeat the string `count` times
    *
@@ -621,6 +974,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     const repeated = value.repeat(count);
     return Maybe.some(repeated) as $ANY;
   }
+
 
   /**
    * Replace the string using the expression
@@ -676,17 +1030,81 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     return Maybe.some(replaced) as $ANY;
   }
 
+
+  /**
+   * Coerce the value to a boolean
+   *
+   * @returns
+   */
+  bool(): Maybe<boolean> {
+    try {
+      return some(Boolean(this.value));
+    } catch (e) {
+      return none;
+    }
+  }
+
+
+  /**
+   * Coerce the value to a number
+   *
+   * alias for {@link bool}
+   *
+   * @returns
+   */
+  boolean(): Maybe<boolean> {
+    return this.bool();
+  }
+
+
+  /**
+   * Coerce the value to a number
+   *
+   * @returns
+   */
+  num(): Maybe<number> {
+    try {
+      return some(Number(this.value));
+    } catch (e) {
+      return none;
+    }
+  }
+
+
+  /**
+   * Coerce the value to a number
+   *
+   * @alias {@link num}
+   *
+   * @returns
+   */
+  number(): Maybe<number> {
+    return this.num();
+  }
+
+
   /**
    * Coerce the value to a string
    *
    * @returns
    */
-  string(): Maybe<string> {
+  str(): Maybe<string> {
     try {
       return some(String(this.value));
     } catch (e) {
       return none;
     }
+  }
+
+  /**
+   * Coerce the value to a string
+   *
+   * @alias {@link str}
+   *
+   * @returns
+   */
+  string(): Maybe<string> {
+    return this.str();
   }
 
 
@@ -704,6 +1122,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
 
     return Maybe.some(this.value as T) as T extends Error ? None : Maybe<Exclude<T, Error>>;
   }
+
 
   /**
    * Throw if Some with error-like value
@@ -726,60 +1145,88 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
 
   /**
    * Attempt to parse the value as an integer
+   *
+   * uses {@link parseInt}
+   *
+   * @returns
    */
   parseInt(radix?: number): Maybe<number> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
+    try {
+      let parsed: number;
+      if (typeof this.value === 'number')
+        parsed = parseInt(String(this.value), radix);
 
-    let parsed: number;
-    if (typeof this.value === 'number')
-      parsed = parseInt(String(this.value), radix);
+      else if (typeof this.value === 'string')
+        parsed = parseInt(this.value, radix);
 
-    else if (typeof this.value === 'string')
-      parsed = parseInt(this.value, radix);
+      else {
+        try { parsed = parseInt(String(this.value)); }
+        catch (err) { return Maybe.none; }
+      }
 
-    else {
-      try { parsed = parseInt(String(this.value)); }
-      catch (err) { return Maybe.none; }
+      if (Number.isNaN(parsed)) return Maybe.none;
+
+      return Maybe.some(parsed);
+    } catch (err) {
+      return none;
     }
-
-    if (Number.isNaN(parsed)) return Maybe.none;
-
-    return Maybe.some(parsed);
   }
 
 
   /**
    * Attempt to parse the value as a float
+   *
+   * uses {@link parseFloat}
+   *
+   * @returns
    */
   parseFloat(): Maybe<number> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
 
-    let parsed: number;
-    if (typeof this.value === 'number')
-      parsed = parseFloat(String(this.value));
+    try {
+      let parsed: number;
+      if (typeof this.value === 'number') {
+        parsed = parseFloat(String(this.value));
+      }
 
-    else if (typeof this.value === 'string')
-      parsed = parseFloat(this.value);
+      else if (typeof this.value === 'string')
+        parsed = parseFloat(this.value);
 
-    else {
-      try { parsed = parseFloat(String(this.value)); }
-      catch (err) { return Maybe.none; }
+      else {
+        try { parsed = parseFloat(String(this.value)); }
+        catch (err) { return Maybe.none; }
+      }
+
+      if (Number.isNaN(parsed)) return Maybe.none;
+
+      return Maybe.some(parsed);
+    } catch (err) {
+      return none;
     }
-
-    if (Number.isNaN(parsed)) return Maybe.none;
-
-    return Maybe.some(parsed);
   }
 
 
+  /**
+   * Split and transform the `Maybe<T>` then join the results into a tuple (array).
+
+   * - If all values return `Some`, `.all` returns `Some`
+   * - If any value returns `None`, `.all` returns `None`
+   *
+   * similar to {@link Promise.all}
+   *
+   * @param maybeables
+   *
+   * @returns
+   */
   all<U extends [...Maybeable[]]>(maybeables: Unary<this, [...U]>): Maybe<UnwrapMaybeables<U>> {
-    if (this.isNone()) return Maybe.none;
+    if (this.isNone()) return none;
     const results: unknown[] = [];
     const _maybeables: Maybeable[] = maybeables(this);
     const length = _maybeables.length;
     for (let i = 0; i < length; i += 1) {
       const next = unwrapMaybeable(_maybeables[i]!);
-      if (next.isNone()) return Maybe.none;
+      if (next.isNone()) return none;
       results.push(next.value);
     }
     return Maybe.some(results) as Maybe<UnwrapMaybeables<U>>;
@@ -800,7 +1247,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     for (let i = 0; i < keysLen; i += 1) {
       const key = keys[i]!;
       const next = unwrapMaybeable(_maybeables[key]!);
-      if (next.isNone()) return Maybe.none;
+      if (next.isNone()) return none;
       results[key] = next.value;
     }
     const symbols = Object.getOwnPropertySymbols(_maybeables);
@@ -808,7 +1255,7 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
     for (let i = 0; i < symLen; i += 1) {
       const sym = symbols[i]!;
       const next = unwrapMaybeable(_maybeables[sym]!);
-      if (next.isNone()) return Maybe.none;
+      if (next.isNone()) return none;
       results[sym] = next.value;
     }
     return Maybe.some(results) as Maybe<{ [K in keyof M]: UnwrapMaybeable<M[K]> }>;
@@ -936,7 +1383,7 @@ export const Maybe = {
    */
   fromTruthy<T>(value: T | Falsy): Maybe<T> {
     if (!value) return none;
-    return Maybe.some(value);
+    return some(value);
   },
 
   /**
@@ -946,7 +1393,7 @@ export const Maybe = {
    * @returns
    */
   toSome<T>(value: T): Some<T> {
-    return Maybe.some(value);
+    return some(value);
   },
 
   /**

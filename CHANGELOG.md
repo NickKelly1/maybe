@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.0.35 - 2021-09-07
+
+### Added
+
+- Added `min`
+- Added `max`
+- Added `trim`
+- Added `trimStart`
+- Added `trimEnd`
+- Added `has`
+- Added `hasOwn`
+- Added `lc`
+- Added `uc`
+- Added `endWith`
+- Added `dontEndWith`
+- Added `startWith`
+- Added `dontStartWith`
+- Added `abs`
+- Added `round`
+- Added `floor`
+- Added `ceil`
+- Added `toFixed`
+- Added `toPrecision`
+- Added `defined`
+- Added `bool`
+- Added `boolean`
+- Added `num`
+- Added `str`
+
+### Changed
+
+- Fixed `flat` typing version compatibility bug
+- Fixed `flatMapNone` typing bug
+- Changed `finite` to not change T
+- Changed `notNaN` to not change T
+- Updated readme.md
+
 ## 0.0.34 - 2021-09-06
 
 ### Added
