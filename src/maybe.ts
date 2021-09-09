@@ -939,6 +939,41 @@ export class MaybeKind<T> implements MaybeKindLike<T> {
 
 
   /**
+   * Coerce the value to a string and find
+   *
+   * uses {@link String.prototype.substr}
+   *
+   * @param from
+   * @param length
+   */
+  substr(from: number, length?: undefined | number): Maybe<string> {
+    if (this.isNone()) return none;
+    return some(String(this.value).substr(from, length));
+  }
+
+
+  /**
+   * Coerce the value to a string and replace between the indeces with
+   * the given value
+   *
+   * @param insert
+   * @param start
+   * @param end
+   */
+  insert(insert: string, start?: number, end?: number): Maybe<string> {
+    if (this.isNone()) return none;
+    const str = String(this.value);
+    const _start = start == null ? 0 : start;
+    const _end = end == null ? 0 : str.length;
+    return some(
+      str.substr(0, _start)
+      + insert
+      + str.substr(_end, str.length)
+    );
+  }
+
+
+  /**
    * Slice the contents
    *
    * @param start

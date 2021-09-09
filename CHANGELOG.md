@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0 - 2021-09-08
+
+Release stable version v1.0.0
+
+### Added
+
+- `substr`
+- `insert`
+
 ## 0.0.36 - 2021-09-07
 
 ### Added
